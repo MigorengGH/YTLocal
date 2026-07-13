@@ -4,6 +4,7 @@ Write-Host ""
 Write-Host "╔══════════════════════════════════════╗" -ForegroundColor Cyan
 Write-Host "║        YTLocal Installer (Win)       ║" -ForegroundColor Cyan
 Write-Host "╚══════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "  Created by Fahimi Amir | Powered by yt-dlp" -ForegroundColor Gray
 Write-Host ""
 
 $Repo = "MigorengGH/YTLocal"

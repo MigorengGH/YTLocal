@@ -9,6 +9,7 @@ echo ""
 echo "╔══════════════════════════════════════╗"
 echo "║        YTLocal Installer             ║"
 echo "╚══════════════════════════════════════╝"
+echo "  Created by Fahimi Amir | Powered by yt-dlp"
 echo ""
 
 # Detect architecture
