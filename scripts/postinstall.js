@@ -10,26 +10,38 @@ if (!fs.existsSync(destDir)) {
     fs.mkdirSync(destDir, { recursive: true });
 }
 
-// Copy the platform-appropriate binary from youtube-dl-exec
-const binaryName = process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp';
-const srcBinary = path.join(rootDir, 'node_modules', 'youtube-dl-exec', 'bin', binaryName);
-const destBinary = path.join(destDir, binaryName);
+// Copy yt-dlp binary
+const ytDlpName = process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp';
+const ytDlpSrc = path.join(rootDir, 'node_modules', 'youtube-dl-exec', 'bin', ytDlpName);
+const ytDlpDest = path.join(destDir, ytDlpName);
 
-if (fs.existsSync(srcBinary)) {
-    fs.copyFileSync(srcBinary, destBinary);
-    fs.chmodSync(destBinary, 0o755);
-    console.log(`✅ yt-dlp binary copied to bin/${binaryName}`);
+if (fs.existsSync(ytDlpSrc)) {
+    fs.copyFileSync(ytDlpSrc, ytDlpDest);
+    fs.chmodSync(ytDlpDest, 0o755);
+    console.log(`✅ yt-dlp binary copied to bin/${ytDlpName}`);
 } else {
-    console.warn(`⚠️  yt-dlp binary not found at ${srcBinary}`);
+    console.warn(`⚠️  yt-dlp binary not found at ${ytDlpSrc}`);
 }
 
-// Also download yt-dlp.exe for Windows cross-compilation (if not already present)
-const winBinary = path.join(destDir, 'yt-dlp.exe');
-if (!fs.existsSync(winBinary) && process.platform !== 'win32') {
+// Copy ffmpeg binary from ffmpeg-static
+try {
+    const ffmpegStaticPath = require('ffmpeg-static');
+    const ffmpegName = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
+    const ffmpegDest = path.join(destDir, ffmpegName);
+    fs.copyFileSync(ffmpegStaticPath, ffmpegDest);
+    fs.chmodSync(ffmpegDest, 0o755);
+    console.log(`✅ ffmpeg binary copied to bin/${ffmpegName}`);
+} catch (e) {
+    console.warn('⚠️  Could not copy ffmpeg:', e.message);
+}
+
+// Also download yt-dlp.exe for Windows cross-compilation (if on macOS and not present)
+const winYtDlp = path.join(destDir, 'yt-dlp.exe');
+if (!fs.existsSync(winYtDlp) && process.platform !== 'win32') {
     console.log('📥 Downloading yt-dlp.exe for Windows cross-compilation...');
     try {
         execSync(
-            `curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe -o "${winBinary}"`,
+            `curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe -o "${winYtDlp}"`,
             { stdio: 'inherit' }
         );
         console.log('✅ yt-dlp.exe downloaded to bin/');

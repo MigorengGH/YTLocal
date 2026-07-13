@@ -2,16 +2,28 @@ const { app, BrowserWindow, ipcMain, dialog, nativeImage } = require('electron')
 const path = require('path');
 const os = require('os');
 const { spawn } = require('child_process');
+const ffmpegStaticPath = require('ffmpeg-static');
 
-// Resolve the yt-dlp binary path:
-// - When packaged: binary is bundled in Resources/bin/
-// - When in dev:   binary is in node_modules/youtube-dl-exec/bin/
+// Resolve yt-dlp binary:
+// - Packaged: bundled in Resources/bin/
+// - Dev: node_modules/youtube-dl-exec/bin/
 function getYtDlpPath() {
     const binaryName = process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp';
     if (app.isPackaged) {
         return path.join(process.resourcesPath, 'bin', binaryName);
     }
     return path.join(__dirname, 'node_modules', 'youtube-dl-exec', 'bin', binaryName);
+}
+
+// Resolve ffmpeg binary:
+// - Packaged: bundled in Resources/bin/
+// - Dev: from ffmpeg-static package
+function getFfmpegPath() {
+    const binaryName = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
+    if (app.isPackaged) {
+        return path.join(process.resourcesPath, 'bin', binaryName);
+    }
+    return ffmpegStaticPath;
 }
 
 let mainWindow;
@@ -61,12 +73,15 @@ ipcMain.handle('select-folder', async () => {
 ipcMain.handle('start-download', async (event, { url, format, quality, folder }) => {
     const downloadsFolder = folder || path.join(os.homedir(), 'Downloads');
     const ytDlpPath = getYtDlpPath();
+    const ffmpegPath = getFfmpegPath();
+    const ffmpegDir = path.dirname(ffmpegPath);
 
     const args = [
         '--no-check-certificates',
         '--no-warnings',
+        '--ffmpeg-location', ffmpegDir,
         '-o', path.join(downloadsFolder, '%(title)s.%(ext)s'),
-        '--newline', // Force progress on new lines for parsing
+        '--newline',
     ];
 
     if (format === 'audio') {
