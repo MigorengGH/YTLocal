@@ -52,11 +52,12 @@ function ensureBinaryPermissions() {
 }
 
 let mainWindow;
+let currentDownloadProcess = null;
 
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 380,
-        height: 600,
+        height: 620,
         resizable: false,
         titleBarStyle: 'hidden',
         icon: path.join(__dirname, 'YTlocal.png'),
@@ -110,6 +111,7 @@ ipcMain.handle('start-download', async (event, { url, format, quality, folder })
     const args = [
         '--no-check-certificates',
         '--no-warnings',
+        '--js-runtimes', `node:${process.execPath}`,
         '--ffmpeg-location', ffmpegDir,
         '-o', path.join(downloadsFolder, '%(title)s.%(ext)s'),
         '--newline',
@@ -138,9 +140,11 @@ ipcMain.handle('start-download', async (event, { url, format, quality, folder })
     let stderrOutput = '';
 
     return new Promise((resolve) => {
-        const subprocess = spawn(ytDlpPath, args);
+        currentDownloadProcess = spawn(ytDlpPath, args, {
+            env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
+        });
 
-        subprocess.stdout.on('data', (data) => {
+        currentDownloadProcess.stdout.on('data', (data) => {
             const output = data.toString();
             const progressMatch = output.match(/\[download\]\s+([\d\.]+)%/);
             if (progressMatch && progressMatch[1]) {
@@ -150,7 +154,7 @@ ipcMain.handle('start-download', async (event, { url, format, quality, folder })
             mainWindow.webContents.send('download-log', output);
         });
 
-        subprocess.stderr.on('data', (data) => {
+        currentDownloadProcess.stderr.on('data', (data) => {
             const errText = data.toString();
             stderrOutput += errText;
             // Also forward stderr to renderer so user sees the real error
@@ -158,7 +162,8 @@ ipcMain.handle('start-download', async (event, { url, format, quality, folder })
             console.error(`stderr: ${errText}`);
         });
 
-        subprocess.on('close', (code) => {
+        currentDownloadProcess.on('close', (code) => {
+            currentDownloadProcess = null;
             if (code === 0) {
                 resolve({ success: true });
             } else {
@@ -166,10 +171,20 @@ ipcMain.handle('start-download', async (event, { url, format, quality, folder })
             }
         });
 
-        subprocess.on('error', (err) => {
+        currentDownloadProcess.on('error', (err) => {
+            currentDownloadProcess = null;
             resolve({ success: false, error: err.message });
         });
     });
+});
+
+ipcMain.handle('cancel-download', () => {
+    if (currentDownloadProcess) {
+        currentDownloadProcess.kill('SIGINT');
+        currentDownloadProcess = null;
+        return true;
+    }
+    return false;
 });
 
 ipcMain.handle('update-ytdlp', async () => {

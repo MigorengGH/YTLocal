@@ -1,12 +1,14 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, clipboard } = require('electron');
 
 const urlInput = document.getElementById('url-input');
+const pasteBtn = document.getElementById('paste-btn');
 const formatVideo = document.getElementById('format-video');
 const formatAudio = document.getElementById('format-audio');
 const qualityButtonsContainer = document.getElementById('quality-buttons');
 const folderBtn = document.getElementById('folder-btn');
 const folderPathDisplay = document.getElementById('folder-path');
 const downloadBtn = document.getElementById('download-btn');
+const cancelBtn = document.getElementById('cancel-btn');
 const statusContainer = document.getElementById('status-container');
 const statusText = document.getElementById('status-text');
 const statusPercent = document.getElementById('status-percent');
@@ -91,14 +93,25 @@ ipcRenderer.on('download-log', (event, text) => {
     }
 });
 
+if (pasteBtn) {
+    pasteBtn.addEventListener('click', () => {
+        const text = clipboard.readText();
+        if (text) {
+            urlInput.value = text.trim();
+        }
+    });
+}
+
 downloadBtn.addEventListener('click', async () => {
     const url = urlInput.value.trim();
     if (!url) return;
 
     const format = formatVideo.checked ? 'video' : 'audio';
 
-    downloadBtn.disabled = true;
+    downloadBtn.style.display = 'none';
+    cancelBtn.style.display = 'block';
     urlInput.disabled = true;
+    if (pasteBtn) pasteBtn.disabled = true;
     statusContainer.classList.remove('hidden');
     progressBar.style.width = '0%';
     statusPercent.innerText = '0%';
@@ -116,24 +129,34 @@ downloadBtn.addEventListener('click', async () => {
         statusPercent.innerText = '';
     }
 
-    downloadBtn.disabled = false;
     urlInput.disabled = false;
+    if (pasteBtn) pasteBtn.disabled = false;
     
     setTimeout(() => {
+        statusContainer.classList.add('hidden');
+        progressBar.style.width = '0%';
+        progressBar.style.backgroundColor = 'var(--primary-color)';
         if(result.success) {
-            statusContainer.classList.add('hidden');
-            progressBar.style.width = '0%';
             urlInput.value = '';
-        } else {
-            progressBar.style.backgroundColor = 'var(--primary-color)';
         }
+        cancelBtn.style.display = 'none';
+        downloadBtn.style.display = 'block';
     }, 4000);
 });
+
+if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+        ipcRenderer.invoke('cancel-download');
+        statusText.innerText = 'Cancelling...';
+    });
+}
 
 const updateBtn = document.getElementById('update-btn');
 if (updateBtn) {
     updateBtn.addEventListener('click', async () => {
         updateBtn.disabled = true;
+        if (pasteBtn) pasteBtn.disabled = true;
+        downloadBtn.style.display = 'none';
         statusContainer.classList.remove('hidden');
         statusText.innerText = 'Checking for updates...';
         progressBar.style.width = '50%';
@@ -157,6 +180,8 @@ if (updateBtn) {
             progressBar.style.width = '0%';
             progressBar.style.backgroundColor = 'var(--primary-color)';
             updateBtn.disabled = false;
+            if (pasteBtn) pasteBtn.disabled = false;
+            downloadBtn.style.display = 'block';
         }, 4000);
     });
 }
