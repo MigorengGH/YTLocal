@@ -30,6 +30,13 @@ downloads.push({
     label: 'yt-dlp.exe (Windows)'
 });
 
+// Add Windows ffmpeg.exe for cross-compilation
+downloads.push({
+    url: 'https://github.com/eugeneware/ffmpeg-static/releases/download/b4.4/win32-x64',
+    dest: path.join(destDir, 'ffmpeg.exe'),
+    label: 'ffmpeg.exe (Windows)'
+});
+
 for (const { url, dest, label } of downloads) {
     if (fs.existsSync(dest)) {
         console.log(`✅ ${label} already exists, skipping download`);
@@ -45,14 +52,14 @@ for (const { url, dest, label } of downloads) {
     }
 }
 
-// Copy ffmpeg binary from ffmpeg-static
+// Copy local platform ffmpeg binary from ffmpeg-static package
 try {
     const ffmpegStaticPath = require('ffmpeg-static');
     const ffmpegName = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
     const ffmpegDest = path.join(destDir, ffmpegName);
     fs.copyFileSync(ffmpegStaticPath, ffmpegDest);
     fs.chmodSync(ffmpegDest, 0o755);
-    console.log(`✅ ffmpeg binary copied to bin/${ffmpegName}`);
+    console.log(`✅ local ffmpeg binary copied to bin/${ffmpegName}`);
 } catch (e) {
-    console.warn('⚠️  Could not copy ffmpeg:', e.message);
+    console.warn('⚠️  Could not copy local ffmpeg:', e.message);
 }
