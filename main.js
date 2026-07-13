@@ -1,7 +1,8 @@
 const { app, BrowserWindow, ipcMain, dialog, nativeImage } = require('electron');
 const path = require('path');
 const os = require('os');
-const { spawn } = require('child_process');
+const fs = require('fs');
+const { spawn, execFileSync } = require('child_process');
 const ffmpegStaticPath = require('ffmpeg-static');
 
 // Resolve yt-dlp binary:
@@ -24,6 +25,24 @@ function getFfmpegPath() {
         return path.join(process.resourcesPath, 'bin', binaryName);
     }
     return ffmpegStaticPath;
+}
+
+// Ensure binaries have execute permissions (they can be stripped when bundled)
+function ensureBinaryPermissions() {
+    if (process.platform === 'win32') return;
+    try {
+        const binDir = path.join(process.resourcesPath, 'bin');
+        if (fs.existsSync(binDir)) {
+            const files = fs.readdirSync(binDir);
+            files.forEach(file => {
+                const filePath = path.join(binDir, file);
+                fs.chmodSync(filePath, 0o755);
+            });
+            console.log('✅ Binary permissions set');
+        }
+    } catch (e) {
+        console.error('Could not set binary permissions:', e.message);
+    }
 }
 
 let mainWindow;
@@ -49,6 +68,12 @@ app.whenReady().then(async () => {
         const image = nativeImage.createFromPath(path.join(__dirname, 'YTlocal.png'));
         app.dock.setIcon(image);
     }
+
+    // Fix binary permissions on startup (important for packaged app)
+    if (app.isPackaged) {
+        ensureBinaryPermissions();
+    }
+
     createWindow();
 
     app.on('activate', function () {
@@ -90,7 +115,6 @@ ipcMain.handle('start-download', async (event, { url, format, quality, folder })
         args.push('--audio-format', fmt);
         args.push('--audio-quality', '0');
     } else {
-        // Video format selection
         const formatMap = {
             'best':  'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
             '4k':    'bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160]',
@@ -104,6 +128,8 @@ ipcMain.handle('start-download', async (event, { url, format, quality, folder })
     }
 
     args.push(url);
+
+    let stderrOutput = '';
 
     return new Promise((resolve) => {
         const subprocess = spawn(ytDlpPath, args);
@@ -119,14 +145,18 @@ ipcMain.handle('start-download', async (event, { url, format, quality, folder })
         });
 
         subprocess.stderr.on('data', (data) => {
-            console.error(`stderr: ${data}`);
+            const errText = data.toString();
+            stderrOutput += errText;
+            // Also forward stderr to renderer so user sees the real error
+            mainWindow.webContents.send('download-log', errText);
+            console.error(`stderr: ${errText}`);
         });
 
         subprocess.on('close', (code) => {
             if (code === 0) {
                 resolve({ success: true });
             } else {
-                resolve({ success: false, error: `yt-dlp exited with code ${code}` });
+                resolve({ success: false, error: stderrOutput || `yt-dlp exited with code ${code}` });
             }
         });
 
