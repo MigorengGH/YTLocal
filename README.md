@@ -12,12 +12,13 @@ YTLocal is a sleek, modern desktop application that allows you to effortlessly d
 
 ## How to use
 
-1. Download the app for your platform from the Releases page.
-2. Open the app.
-3. Paste the URL of the video or audio you want to download.
-4. Select whether you want Video or Music.
-5. Choose your desired quality/format.
-6. Click Download and wait for the process to finish!
+1. Download the app for your platform from the [Releases](https://github.com/MigorengGH/YTLocal/releases) page.
+2. **macOS:** Open the `.dmg` file and drag YTLocal into your Applications folder.
+3. **Windows:** Run the `.exe` installer and follow the steps.
+4. Open the app, paste a YouTube URL, choose Video or Music, pick your quality, and hit Download!
+
+> **macOS Security Note:** Since YTLocal is not signed with an Apple developer certificate, macOS may block it on first launch.
+> To fix this: go to **System Settings → Privacy & Security** and click **"Open Anyway"** next to YTLocal.
 
 ## Development
 
