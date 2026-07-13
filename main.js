@@ -56,7 +56,7 @@ let mainWindow;
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 380,
-        height: 560,
+        height: 580,
         resizable: false,
         titleBarStyle: 'hidden',
         icon: path.join(__dirname, 'YTlocal.png'),

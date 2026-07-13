@@ -38,6 +38,36 @@ body {
     z-index: 9999;
 }
 
+.update-top-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    -webkit-app-region: no-drag;
+}
+
+.update-top-btn:hover {
+    color: #ffffff;
+    border-color: var(--primary-color);
+    background: var(--card-bg);
+}
+
+.update-top-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
 .container {
     display: flex;
     flex-direction: column;
