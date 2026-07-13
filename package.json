@@ -11,23 +11,22 @@
   "build": {
     "appId": "com.ytlocal.app",
     "productName": "YTLocal",
+    "extraResources": [
+      {
+        "from": "bin/",
+        "to": "bin",
+        "filter": ["**/*"]
+      }
+    ],
     "mac": {
       "category": "public.app-category.utilities",
-      "target": [
-        "dmg"
-      ],
-      "icon": "YTlocal.png"
+      "target": ["dmg"]
     },
     "win": {
-      "target": [
-        "nsis"
-      ],
-      "icon": "YTlocal.png"
+      "target": ["nsis"]
     },
     "linux": {
-      "target": [
-        "AppImage"
-      ]
+      "target": ["AppImage"]
     }
   },
   "keywords": [],
