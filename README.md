@@ -1,6 +1,6 @@
 # YTLocal
 
-YTLocal is a sleek, modern desktop application that allows you to effortlessly download videos and audio from YouTube and other supported sites. Built with Electron and `youtube-dl-exec`, it provides a simple and intuitive graphical interface to download media in various formats and qualities directly to your local machine.
+YTLocal is a sleek, modern desktop application that allows you to effortlessly download videos and audio from YouTube and other supported sites. Built with Electron and `yt-dlp`, it provides a simple and intuitive graphical interface to download media in various formats and qualities directly to your local machine.
 
 ## Features
 
@@ -10,36 +10,62 @@ YTLocal is a sleek, modern desktop application that allows you to effortlessly d
 - **Custom Save Location:** Easily select where you want your downloaded files to be saved.
 - **Live Progress Tracking:** Monitor your downloads with a visual progress bar and percentage indicator.
 
-## How to use
+---
 
-1. Download the app for your platform from the [Releases](https://github.com/MigorengGH/YTLocal/releases) page.
-2. **macOS:** Open the `.dmg` file and drag YTLocal into your Applications folder.
-3. **Windows:** Run the `.exe` installer and follow the steps.
-4. Open the app, paste a YouTube URL, choose Video or Music, pick your quality, and hit Download!
+## 📦 Install the App (Recommended)
 
-> **macOS Security Note:** Since YTLocal is not signed with an Apple developer certificate, macOS may block it on first launch.
-> To fix this: go to **System Settings → Privacy & Security** and click **"Open Anyway"** next to YTLocal.
+1. Go to the [Releases](https://github.com/MigorengGH/YTLocal/releases) page and download the file for your platform.
+2. **macOS** → Download `YTLocal-x.x.x-arm64.dmg`
+   - Open the `.dmg` file
+   - **Drag YTLocal into your Applications folder** ← important!
+   - Open it from Applications (not from the disk image)
+3. **Windows** → Download `YTLocal Setup x.x.x.exe`
+   - Run the installer and follow the steps
+   - Launch YTLocal from the Start Menu or Desktop
 
-## Development
+> ⚠️ **macOS users:** Do NOT run the app directly from the `.dmg` disk image — always drag it to Applications first or it will fail to start.
 
-If you'd like to run the app from source:
+> 🔒 **macOS Security Warning:** Since YTLocal is not signed with an Apple developer certificate, macOS may block it on first launch.
+> To fix: go to **System Settings → Privacy & Security** and click **"Open Anyway"** next to YTLocal.
 
-1. Clone this repository.
-2. Run `npm install` to install the dependencies.
-3. Run `npm start` to start the app locally.
+---
 
-## Packaging
+## 🛠️ Run Locally from Source (if the package doesn't work)
 
-To package the application into a standalone executable:
+If the packaged app isn't working on your machine, you can run it directly from source. You will need [Node.js](https://nodejs.org) installed (v18 or later recommended).
 
 ```bash
-npm run dist
+# 1. Clone the repository
+git clone https://github.com/MigorengGH/YTLocal.git
+cd YTLocal
+
+# 2. Install dependencies (this also downloads the yt-dlp binary automatically)
+npm install
+
+# 3. Run the app
+npm start
 ```
 
-This will output the compiled binaries into the `dist/` directory.
+That's it — the app window will open and everything works the same as the packaged version.
+
+---
+
+## 🔨 Build from Source (create your own .dmg / .exe)
+
+```bash
+# macOS
+npm run dist
+
+# Windows
+npm run dist:win
+```
+
+Output files will be placed in the `dist/` folder.
+
+---
 
 ## Technologies Used
 
 - [Electron](https://www.electronjs.org/)
-- [youtube-dl-exec](https://github.com/microlinkhq/youtube-dl-exec)
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp)
 - HTML/CSS/JavaScript
