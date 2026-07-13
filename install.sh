@@ -38,9 +38,10 @@ TMP_DMG="/tmp/YTLocal_install.dmg"
 curl -L "$DMG_URL" -o "$TMP_DMG" --progress-bar
 
 echo "📦 Mounting disk image..."
-MOUNT_POINT=$(hdiutil attach "$TMP_DMG" -nobrowse -noautoopen | tail -1 | awk '{print $3}')
+MOUNT_POINT=$(hdiutil attach "$TMP_DMG" -nobrowse -noautoopen | grep /Volumes | perl -pe 's/.*(\/Volumes\/.*)/\1/' | tr -d '\n')
 
 echo "📂 Installing to $INSTALL_DIR..."
+
 if [ -d "$INSTALL_DIR/$APP_NAME.app" ]; then
     echo "   Removing previous version..."
     rm -rf "$INSTALL_DIR/$APP_NAME.app"
