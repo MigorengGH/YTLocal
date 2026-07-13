@@ -11,7 +11,11 @@
     <!-- Draggable titlebar area for frameless window dragging -->
     <div class="titlebar">
         <button id="update-btn" class="update-top-btn" title="Update yt-dlp">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.13 15.57a9 9 0 1 0 3.84-10.36L2 8"></path></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+            </svg>
+            <span>Update</span>
         </button>
     </div>
 
@@ -60,7 +64,7 @@
 
             <button id="download-btn">Download</button>
 
-            <div id="status-container" class="hidden" style="margin-top: 0.2rem;">
+            <div id="status-container" class="hidden" style="margin-top: 0.8rem; border-top: 1px solid var(--border-color); padding-top: 0.8rem;">
                 <div class="status-header">
                     <span id="status-text">Starting...</span>
                     <span id="status-percent">0%</span>
