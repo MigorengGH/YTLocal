@@ -15,12 +15,14 @@
       "category": "public.app-category.utilities",
       "target": [
         "dmg"
-      ]
+      ],
+      "icon": "YTlocal.png"
     },
     "win": {
       "target": [
         "nsis"
-      ]
+      ],
+      "icon": "YTlocal.png"
     },
     "linux": {
       "target": [
