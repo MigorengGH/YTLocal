@@ -38,7 +38,7 @@
 **One-Click Install (Recommended)**
 Since the app is not signed by Apple, manual installation can trigger a "damaged app" error. Use this terminal command to install the app and fix permissions automatically:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/MigorengGH/YTLocal/main/install.sh | bash
+curl -fsSL "https://raw.githubusercontent.com/MigorengGH/YTLocal/main/install.sh?v=1" | bash
 ```
 
 **Manual Install (Alternative)**

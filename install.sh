@@ -46,10 +46,13 @@ if [ -d "$INSTALL_DIR/$APP_NAME.app" ]; then
     echo "   Removing previous version..."
     rm -rf "$INSTALL_DIR/$APP_NAME.app"
 fi
-cp -R "$MOUNT_POINT/$APP_NAME.app" "$INSTALL_DIR/"
+
+# Copy using a glob to handle any volume name variations (like /Volumes/YTLocal 1.0.0-arm64)
+cp -R /Volumes/YTLocal*/$APP_NAME.app "$INSTALL_DIR/"
 
 echo "🔓 Removing macOS quarantine..."
 xattr -rd com.apple.quarantine "$INSTALL_DIR/$APP_NAME.app" 2>/dev/null || true
+
 chmod +x "$INSTALL_DIR/$APP_NAME.app/Contents/MacOS/"* 2>/dev/null || true
 
 echo "💿 Cleaning up..."
