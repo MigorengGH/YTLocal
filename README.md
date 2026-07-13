@@ -54,9 +54,18 @@ curl -fsSL "https://raw.githubusercontent.com/MigorengGH/YTLocal/main/install.sh
 
 
 ### 🪟 Windows
-1. Download `YTLocal Setup x.x.x.exe`
-2. Run the installer
+
+**One-Click Install (Recommended)**
+Since the app is not signed by Microsoft, downloading the `.exe` via a browser will trigger a "Windows protected your PC" (SmartScreen) warning. Use this PowerShell command to install it cleanly:
+```powershell
+irm "https://raw.githubusercontent.com/MigorengGH/YTLocal/main/install.ps1" | iex
+```
+
+**Manual Install (Alternative)**
+1. Download `YTLocal Setup x.x.x.exe` from Releases
+2. Run the installer (If SmartScreen blocks it, click "More Info" -> "Run Anyway")
 3. Launch YTLocal from the Start Menu or Desktop
+
 
 ---
 
