@@ -34,7 +34,15 @@
 > **Get the latest version from the [Releases page →](https://github.com/MigorengGH/YTLocal/releases)**
 
 ### 🍎 macOS (Apple Silicon)
-1. Download `YTLocal-x.x.x-arm64.dmg`
+
+**One-Click Install (Recommended)**
+Since the app is not signed by Apple, manual installation can trigger a "damaged app" error. Use this terminal command to install the app and fix permissions automatically:
+```bash
+curl -fsSL https://raw.githubusercontent.com/MigorengGH/YTLocal/main/install.sh | bash
+```
+
+**Manual Install (Alternative)**
+1. Download `YTLocal-x.x.x-arm64.dmg` from Releases
 2. Open the `.dmg` and **drag YTLocal into Applications**
 3. Open Terminal and run:
    ```bash
@@ -43,6 +51,7 @@
 4. Launch YTLocal from your Applications folder
 
 > ⚠️ **Never run the app directly from the disk image.** Always drag it to Applications first.
+
 
 ### 🪟 Windows
 1. Download `YTLocal Setup x.x.x.exe`
