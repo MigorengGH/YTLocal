@@ -25,8 +25,12 @@ YTLocal is a sleek, modern desktop application that allows you to effortlessly d
 
 > ⚠️ **macOS users:** Do NOT run the app directly from the `.dmg` disk image — always drag it to Applications first or it will fail to start.
 
-> 🔒 **macOS Security Warning:** Since YTLocal is not signed with an Apple developer certificate, macOS may block it on first launch.
-> To fix: go to **System Settings → Privacy & Security** and click **"Open Anyway"** next to YTLocal.
+> 🔒 **macOS "damaged app" or "unidentified developer" error?**
+> This happens because the app is not signed with an Apple certificate. To fix it, open **Terminal** and run:
+> ```bash
+> xattr -cr /Applications/YTLocal.app
+> ```
+> Then try opening it again. If macOS still blocks it, go to **System Settings → Privacy & Security** and click **"Open Anyway"**.
 
 ---
 
