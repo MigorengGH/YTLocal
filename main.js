@@ -187,6 +187,15 @@ ipcMain.handle('cancel-download', () => {
     return false;
 });
 
+ipcMain.on('resize-window', (event, height) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        const bounds = mainWindow.getBounds();
+        if (bounds.height !== height) {
+            mainWindow.setSize(bounds.width, height, true); // true for animation on macOS
+        }
+    }
+});
+
 ipcMain.handle('update-ytdlp', async () => {
     const ytDlpPath = getYtDlpPath();
     let output = '';

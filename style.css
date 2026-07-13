@@ -22,7 +22,7 @@ body {
     color: var(--text-color);
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    min-height: 100vh;
     overflow: hidden;
     user-select: none;
 }
@@ -74,9 +74,9 @@ body {
 .container {
     display: flex;
     flex-direction: column;
-    padding: 1.8rem 1.5rem 0.3rem 1.5rem; /* reduced top and bottom padding */
-    height: 100%;
-    justify-content: space-between;
+    padding: 1.8rem 1.5rem 1.5rem 1.5rem; /* adjusted bottom padding */
+    justify-content: flex-start;
+    gap: 1rem;
 }
 
 @keyframes spin {

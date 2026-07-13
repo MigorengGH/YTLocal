@@ -185,3 +185,13 @@ if (updateBtn) {
         }, 4000);
     });
 }
+
+// Auto-resize window based on content
+const container = document.querySelector('.container');
+if (container) {
+    const resizeObserver = new ResizeObserver(() => {
+        const height = container.scrollHeight;
+        ipcRenderer.send('resize-window', height);
+    });
+    resizeObserver.observe(container);
+}
