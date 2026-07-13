@@ -1,0 +1,22 @@
+{
+  "main.js": {
+    "mtime": 1783929014.734348,
+    "ast_hash": "3965bcdca4327510c6270e65cf907bed",
+    "semantic_hash": "3965bcdca4327510c6270e65cf907bed"
+  },
+  "package.json": {
+    "mtime": 1783928785.9698632,
+    "ast_hash": "b7b61c5bcab683345e439363d3970a27",
+    "semantic_hash": "b7b61c5bcab683345e439363d3970a27"
+  },
+  "renderer.js": {
+    "mtime": 1783929000.1936486,
+    "ast_hash": "2a30f6386c548d87ad6e77b4889e44f9",
+    "semantic_hash": "2a30f6386c548d87ad6e77b4889e44f9"
+  },
+  "index.html": {
+    "mtime": 1783928979.4169352,
+    "ast_hash": "93e5186f31f49e3bdee81ecc3c29e27e",
+    "semantic_hash": "93e5186f31f49e3bdee81ecc3c29e27e"
+  }
+}

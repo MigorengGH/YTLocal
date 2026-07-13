@@ -1,0 +1,733 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {
+    "hyperedges": [
+      {
+        "id": "download_interface_flow",
+        "label": "Download Interface Components",
+        "nodes": [
+          "index_url_input",
+          "index_format_video",
+          "index_format_audio",
+          "index_download_btn"
+        ],
+        "relation": "participate_in",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "index.html"
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "label": "main.js",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "main",
+      "community": 2,
+      "norm_label": "main.js"
+    },
+    {
+      "label": "{ app, BrowserWindow, ipcMain, dialog }",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "main_app_browserwindow_ipcmain_dialog",
+      "community": 2,
+      "norm_label": "{ app, browserwindow, ipcmain, dialog }"
+    },
+    {
+      "label": "path",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "main_path",
+      "community": 2,
+      "norm_label": "path"
+    },
+    {
+      "label": "os",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "main_os",
+      "community": 2,
+      "norm_label": "os"
+    },
+    {
+      "label": "youtubedl",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "main_youtubedl",
+      "community": 2,
+      "norm_label": "youtubedl"
+    },
+    {
+      "label": "createWindow()",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "main_createwindow",
+      "community": 2,
+      "norm_label": "createwindow()"
+    },
+    {
+      "label": "package.json",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "package",
+      "community": 1,
+      "norm_label": "package.json"
+    },
+    {
+      "label": "name",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "package_name",
+      "community": 1,
+      "norm_label": "name"
+    },
+    {
+      "label": "version",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "package_version",
+      "community": 1,
+      "norm_label": "version"
+    },
+    {
+      "label": "description",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "package_description",
+      "community": 1,
+      "norm_label": "description"
+    },
+    {
+      "label": "main",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "package_main",
+      "community": 1,
+      "norm_label": "main"
+    },
+    {
+      "label": "scripts",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "package_scripts",
+      "community": 3,
+      "norm_label": "scripts"
+    },
+    {
+      "label": "test",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "package_scripts_test",
+      "community": 3,
+      "norm_label": "test"
+    },
+    {
+      "label": "start",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "package_scripts_start",
+      "community": 3,
+      "norm_label": "start"
+    },
+    {
+      "label": "keywords",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "package_keywords",
+      "community": 1,
+      "norm_label": "keywords"
+    },
+    {
+      "label": "author",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "package_author",
+      "community": 1,
+      "norm_label": "author"
+    },
+    {
+      "label": "license",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "package_license",
+      "community": 1,
+      "norm_label": "license"
+    },
+    {
+      "label": "devDependencies",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "package_devdependencies",
+      "community": 6,
+      "norm_label": "devdependencies"
+    },
+    {
+      "label": "electron",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "package_devdependencies_electron",
+      "community": 6,
+      "norm_label": "electron"
+    },
+    {
+      "label": "dependencies",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "package_dependencies",
+      "community": 5,
+      "norm_label": "dependencies"
+    },
+    {
+      "label": "youtube-dl-exec",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "package_dependencies_youtube_dl_exec",
+      "community": 5,
+      "norm_label": "youtube-dl-exec"
+    },
+    {
+      "label": "renderer.js",
+      "file_type": "code",
+      "source_file": "renderer.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "renderer",
+      "community": 0,
+      "norm_label": "renderer.js"
+    },
+    {
+      "label": "{ ipcRenderer }",
+      "file_type": "code",
+      "source_file": "renderer.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "renderer_ipcrenderer",
+      "community": 0,
+      "norm_label": "{ ipcrenderer }"
+    },
+    {
+      "label": "urlInput",
+      "file_type": "code",
+      "source_file": "renderer.js",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "renderer_urlinput",
+      "community": 0,
+      "norm_label": "urlinput"
+    },
+    {
+      "label": "formatVideo",
+      "file_type": "code",
+      "source_file": "renderer.js",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "renderer_formatvideo",
+      "community": 0,
+      "norm_label": "formatvideo"
+    },
+    {
+      "label": "downloadBtn",
+      "file_type": "code",
+      "source_file": "renderer.js",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "renderer_downloadbtn",
+      "community": 0,
+      "norm_label": "downloadbtn"
+    },
+    {
+      "label": "statusContainer",
+      "file_type": "code",
+      "source_file": "renderer.js",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "renderer_statuscontainer",
+      "community": 0,
+      "norm_label": "statuscontainer"
+    },
+    {
+      "label": "statusText",
+      "file_type": "code",
+      "source_file": "renderer.js",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "renderer_statustext",
+      "community": 0,
+      "norm_label": "statustext"
+    },
+    {
+      "label": "progressBar",
+      "file_type": "code",
+      "source_file": "renderer.js",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "renderer_progressbar",
+      "community": 0,
+      "norm_label": "progressbar"
+    },
+    {
+      "label": "index.html",
+      "file_type": "code",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "index_html",
+      "community": 4,
+      "norm_label": "index.html"
+    },
+    {
+      "label": "style.css",
+      "file_type": "code",
+      "source_file": "style.css",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "style_css",
+      "community": 4,
+      "norm_label": "style.css"
+    },
+    {
+      "label": "URL Input Field",
+      "file_type": "code",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "index_url_input",
+      "community": 0,
+      "norm_label": "url input field"
+    },
+    {
+      "label": "Video Format Toggle",
+      "file_type": "code",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "index_format_video",
+      "community": 8,
+      "norm_label": "video format toggle"
+    },
+    {
+      "label": "Audio Format Toggle",
+      "file_type": "code",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "index_format_audio",
+      "community": 7,
+      "norm_label": "audio format toggle"
+    },
+    {
+      "label": "Download Button",
+      "file_type": "code",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "index_download_btn",
+      "community": 0,
+      "norm_label": "download button"
+    },
+    {
+      "label": "Status Container",
+      "file_type": "code",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "index_status_container",
+      "community": 0,
+      "norm_label": "status container"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "main",
+      "target": "main_app_browserwindow_ipcmain_dialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "main",
+      "target": "main_createwindow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "main",
+      "target": "main_os",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "main",
+      "target": "main_path",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "main",
+      "target": "main_youtubedl",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_author",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_dependencies",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_description",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_devdependencies",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_keywords",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_license",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_name",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_scripts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_version",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "package_scripts",
+      "target": "package_scripts_start",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "package_scripts",
+      "target": "package_scripts_test",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "package_devdependencies",
+      "target": "package_devdependencies_electron",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "package_dependencies",
+      "target": "package_dependencies_youtube_dl_exec",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "index.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "index_html",
+      "target": "renderer"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "renderer.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "renderer",
+      "target": "renderer_downloadbtn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "renderer.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "renderer",
+      "target": "renderer_formatvideo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "renderer.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "renderer",
+      "target": "renderer_ipcrenderer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "renderer.js",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "renderer",
+      "target": "renderer_progressbar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "renderer.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "renderer",
+      "target": "renderer_statuscontainer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "renderer.js",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "renderer",
+      "target": "renderer_statustext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "renderer.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "renderer",
+      "target": "renderer_urlinput",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "index.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "renderer",
+      "target": "index_download_btn"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "index.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "renderer",
+      "target": "index_status_container"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "index.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "renderer",
+      "target": "index_url_input"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "index.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "index_html",
+      "target": "style_css"
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "download_interface_flow",
+      "label": "Download Interface Components",
+      "nodes": [
+        "index_url_input",
+        "index_format_video",
+        "index_format_audio",
+        "index_download_btn"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "index.html"
+    }
+  ]
+}
