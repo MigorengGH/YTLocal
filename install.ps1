@@ -35,6 +35,12 @@ Write-Host "🚀 Running Installer..." -ForegroundColor Yellow
 # Start the NSIS installer. It runs automatically because we built it with oneClick=true
 Start-Process -FilePath $TempPath -Wait
 
+Write-Host "🔄 Updating yt-dlp core..." -ForegroundColor Yellow
+$InstalledYtDlp = Join-Path $env:LOCALAPPDATA "Programs\YTLocal\resources\bin\yt-dlp.exe"
+if (Test-Path $InstalledYtDlp) {
+    Start-Process -FilePath $InstalledYtDlp -ArgumentList "-U" -Wait -NoNewWindow
+}
+
 Write-Host "💿 Cleaning up..." -ForegroundColor Yellow
 Remove-Item -Path $TempPath -Force -ErrorAction SilentlyContinue
 

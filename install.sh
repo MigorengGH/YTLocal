@@ -55,6 +55,9 @@ xattr -rd com.apple.quarantine "$INSTALL_DIR/$APP_NAME.app" 2>/dev/null || true
 
 chmod +x "$INSTALL_DIR/$APP_NAME.app/Contents/MacOS/"* 2>/dev/null || true
 
+echo "🔄 Updating yt-dlp core..."
+"$INSTALL_DIR/$APP_NAME.app/Contents/Resources/bin/yt-dlp" -U || true
+
 echo "💿 Cleaning up..."
 hdiutil detach "$MOUNT_POINT" -quiet
 rm -f "$TMP_DMG"

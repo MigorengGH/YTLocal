@@ -171,3 +171,28 @@ ipcMain.handle('start-download', async (event, { url, format, quality, folder })
         });
     });
 });
+
+ipcMain.handle('update-ytdlp', async () => {
+    const ytDlpPath = getYtDlpPath();
+    let output = '';
+
+    return new Promise((resolve) => {
+        const subprocess = spawn(ytDlpPath, ['-U']);
+
+        subprocess.stdout.on('data', (data) => {
+            output += data.toString();
+        });
+
+        subprocess.stderr.on('data', (data) => {
+            output += data.toString();
+        });
+
+        subprocess.on('close', (code) => {
+            resolve({ success: code === 0, output });
+        });
+
+        subprocess.on('error', (err) => {
+            resolve({ success: false, output: err.message });
+        });
+    });
+});

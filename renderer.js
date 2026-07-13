@@ -129,3 +129,34 @@ downloadBtn.addEventListener('click', async () => {
         }
     }, 4000);
 });
+
+const updateBtn = document.getElementById('update-btn');
+if (updateBtn) {
+    updateBtn.addEventListener('click', async () => {
+        updateBtn.disabled = true;
+        statusContainer.classList.remove('hidden');
+        statusText.innerText = 'Checking for updates...';
+        progressBar.style.width = '50%';
+        statusPercent.innerText = '';
+        
+        const result = await ipcRenderer.invoke('update-ytdlp');
+        
+        if (result.success) {
+            statusText.innerText = result.output.includes('Up to date') ? 'yt-dlp is already up to date' : 'Update successful!';
+            progressBar.style.backgroundColor = 'var(--primary-color)';
+            progressBar.style.width = '100%';
+        } else {
+            statusText.innerText = `Update failed`;
+            progressBar.style.backgroundColor = '#ff4444';
+            progressBar.style.width = '100%';
+            console.error('Update output:', result.output);
+        }
+        
+        setTimeout(() => {
+            statusContainer.classList.add('hidden');
+            progressBar.style.width = '0%';
+            progressBar.style.backgroundColor = 'var(--primary-color)';
+            updateBtn.disabled = false;
+        }, 4000);
+    });
+}
