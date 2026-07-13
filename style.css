@@ -40,20 +40,20 @@ body {
 
 .update-top-btn {
     position: absolute;
-    top: 4px;
+    top: 12px;
     right: 15px;
     background: var(--input-bg);
     border: 1px solid #4a4a4a;
-    border-radius: 20px;
-    padding: 0 12px;
-    height: 30px;
+    border-radius: 14px;
+    padding: 0 10px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 7px;
     cursor: pointer;
     color: #ffffff;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
     transition: all 0.2s;
     -webkit-app-region: no-drag;

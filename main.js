@@ -53,6 +53,7 @@ function ensureBinaryPermissions() {
 
 let mainWindow;
 let currentDownloadProcess = null;
+let currentDownloadFiles = [];
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -140,12 +141,19 @@ ipcMain.handle('start-download', async (event, { url, format, quality, folder })
     let stderrOutput = '';
 
     return new Promise((resolve) => {
+        currentDownloadFiles = [];
         currentDownloadProcess = spawn(ytDlpPath, args, {
             env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
         });
 
         currentDownloadProcess.stdout.on('data', (data) => {
             const output = data.toString();
+            
+            const destMatch = output.match(/Destination:\s+(.+)/);
+            if (destMatch && destMatch[1]) {
+                currentDownloadFiles.push(destMatch[1].trim());
+            }
+
             const progressMatch = output.match(/\[download\]\s+([\d\.]+)%/);
             if (progressMatch && progressMatch[1]) {
                 const percent = parseFloat(progressMatch[1]);
@@ -182,6 +190,23 @@ ipcMain.handle('cancel-download', () => {
     if (currentDownloadProcess) {
         currentDownloadProcess.kill('SIGINT');
         currentDownloadProcess = null;
+        
+        // Wait briefly for yt-dlp to close file handles, then delete
+        setTimeout(() => {
+            currentDownloadFiles.forEach(file => {
+                if (fs.existsSync(file)) {
+                    try { fs.unlinkSync(file); } catch (e) {}
+                }
+                if (fs.existsSync(file + '.part')) {
+                    try { fs.unlinkSync(file + '.part'); } catch (e) {}
+                }
+                if (fs.existsSync(file + '.ytdl')) {
+                    try { fs.unlinkSync(file + '.ytdl'); } catch (e) {}
+                }
+            });
+            currentDownloadFiles = [];
+        }, 1500);
+
         return true;
     }
     return false;
