@@ -61,6 +61,12 @@ Since the app is not signed by Microsoft, downloading the `.exe` via a browser w
 irm "https://raw.githubusercontent.com/MigorengGH/YTLocal/main/install.ps1" | iex
 ```
 
+**Portable Version (No Install)**
+If the installer fails or gets blocked by Antivirus, download the **Portable ZIP**:
+1. Download `YTLocal-x.x.x-win.zip` from Releases
+2. Right-click and **Extract All**
+3. Open the extracted folder and double-click `YTLocal.exe`
+
 **Manual Install (Alternative)**
 1. Download `YTLocal Setup x.x.x.exe` from Releases
 2. Run the installer (If SmartScreen blocks it, click "More Info" -> "Run Anyway")
