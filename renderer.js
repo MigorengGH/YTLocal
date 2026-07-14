@@ -126,6 +126,8 @@ downloadBtn.addEventListener('click', async () => {
     if (!url) return;
 
     const format = formatVideo.checked ? 'video' : 'audio';
+    const cookiesSelect = document.getElementById('cookies-select');
+    const cookies = cookiesSelect ? cookiesSelect.value : 'none';
 
     downloadBtn.style.display = 'none';
     cancelBtn.style.display = 'block';
@@ -136,7 +138,13 @@ downloadBtn.addEventListener('click', async () => {
     statusPercent.innerText = '0%';
     statusText.innerText = 'Starting download...';
 
-    const result = await ipcRenderer.invoke('start-download', { url, format, quality: currentQuality, folder: selectedFolder });
+    const result = await ipcRenderer.invoke('start-download', { 
+        url, 
+        format, 
+        quality: currentQuality, 
+        folder: selectedFolder,
+        cookies 
+    });
 
     if (result.success) {
         statusText.innerText = 'Download complete!';
@@ -200,4 +208,10 @@ if (container) {
         }
     });
     resizeObserver.observe(container);
+}
+
+// Hide safari option on non-macOS platforms
+if (process.platform !== 'darwin') {
+    const safariOpt = document.querySelector('#cookies-select option[value="safari"]');
+    if (safariOpt) safariOpt.remove();
 }

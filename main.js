@@ -107,7 +107,7 @@ ipcMain.handle('select-folder', async () => {
     return null;
 });
 
-ipcMain.handle('start-download', async (event, { url, format, quality, folder }) => {
+ipcMain.handle('start-download', async (event, { url, format, quality, folder, cookies }) => {
     const downloadsFolder = folder || path.join(os.homedir(), 'Downloads');
     const ytDlpPath = getYtDlpPath();
     const ffmpegPath = getFfmpegPath();
@@ -121,6 +121,10 @@ ipcMain.handle('start-download', async (event, { url, format, quality, folder })
         '-o', path.join(downloadsFolder, '%(title)s.%(ext)s'),
         '--newline',
     ];
+
+    if (cookies && cookies !== 'none') {
+        args.push('--cookies-from-browser', cookies);
+    }
 
     if (format === 'audio') {
         args.push('--extract-audio');
