@@ -138,26 +138,40 @@ downloadBtn.addEventListener('click', async () => {
     statusPercent.innerText = '0%';
     statusText.innerText = 'Starting download...';
 
+    const embedThumbnailInput = document.getElementById('embed-thumbnail');
+    const embedMetadataInput = document.getElementById('embed-metadata');
+    embedThumbnailInput.disabled = true;
+    embedMetadataInput.disabled = true;
+
+    const embedThumbnail = embedThumbnailInput.checked;
+    const embedMetadata = embedMetadataInput.checked;
+
     const result = await ipcRenderer.invoke('start-download', { 
         url, 
         format, 
         quality: currentQuality, 
         folder: selectedFolder,
-        cookies 
+        cookies,
+        embedThumbnail,
+        embedMetadata
     });
 
     if (result.success) {
         statusText.innerText = 'Download complete!';
         progressBar.style.width = '100%';
         statusPercent.innerText = '100%';
+        clearSpeedEta();
     } else {
         statusText.innerText = `Error: ${result.error || 'Failed'}`;
         progressBar.style.backgroundColor = '#ff4444';
         statusPercent.innerText = '';
+        clearSpeedEta();
     }
 
     urlInput.disabled = false;
     if (pasteBtn) pasteBtn.disabled = false;
+    embedThumbnailInput.disabled = false;
+    embedMetadataInput.disabled = false;
     
     setTimeout(() => {
         statusContainer.classList.add('hidden');
@@ -175,6 +189,7 @@ if (cancelBtn) {
     cancelBtn.addEventListener('click', () => {
         ipcRenderer.invoke('cancel-download');
         statusText.innerText = 'Cancelling...';
+        clearSpeedEta();
     });
 }
 
@@ -215,3 +230,57 @@ if (process.platform !== 'darwin') {
     const safariOpt = document.querySelector('#cookies-select option[value="safari"]');
     if (safariOpt) safariOpt.remove();
 }
+
+// ── Speed & ETA Indicators ──────────────────────────────────────────────
+const speedText = document.getElementById('speed-text');
+const etaText = document.getElementById('eta-text');
+
+ipcRenderer.on('download-speed', (event, speed) => {
+    if (speedText) speedText.innerText = `↓ ${speed}`;
+});
+
+ipcRenderer.on('download-eta', (event, eta) => {
+    if (etaText) etaText.innerText = `ETA ${eta}`;
+});
+
+// Clear speed/ETA when download finishes or is cancelled
+function clearSpeedEta() {
+    if (speedText) speedText.innerText = '';
+    if (etaText) etaText.innerText = '';
+}
+
+// Patch into existing download completion flow
+const originalDownloadClick = downloadBtn.onclick;
+downloadBtn.addEventListener('click', () => {
+    clearSpeedEta();
+});
+
+// ── Settings Panel Toggle ──────────────────────────────────────────────
+const settingsBtn = document.getElementById('settings-btn');
+const settingsOverlay = document.getElementById('settings-overlay');
+const settingsCloseBtn = document.getElementById('settings-close-btn');
+
+if (settingsBtn && settingsOverlay) {
+    settingsBtn.addEventListener('click', () => {
+        settingsOverlay.classList.remove('hidden');
+    });
+}
+
+if (settingsCloseBtn && settingsOverlay) {
+    settingsCloseBtn.addEventListener('click', () => {
+        settingsOverlay.classList.add('hidden');
+    });
+}
+
+if (settingsOverlay) {
+    settingsOverlay.addEventListener('click', (e) => {
+        if (e.target === settingsOverlay) {
+            settingsOverlay.classList.add('hidden');
+        }
+    });
+}
+
+
+
+
+

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, nativeImage, shell } = require('electron');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
@@ -55,7 +55,6 @@ let mainWindow;
 let currentDownloadProcess = null;
 let currentDownloadFiles = [];
 let lockedContentWidth = null;
-
 function createWindow() {
     lockedContentWidth = null;
     const isMac = process.platform === 'darwin';
@@ -88,6 +87,8 @@ app.whenReady().then(async () => {
 
     createWindow();
 
+
+
     app.on('activate', function () {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
@@ -107,7 +108,7 @@ ipcMain.handle('select-folder', async () => {
     return null;
 });
 
-ipcMain.handle('start-download', async (event, { url, format, quality, folder, cookies }) => {
+ipcMain.handle('start-download', async (event, { url, format, quality, folder, cookies, embedThumbnail, embedMetadata }) => {
     const downloadsFolder = folder || path.join(os.homedir(), 'Downloads');
     const ytDlpPath = getYtDlpPath();
     const ffmpegPath = getFfmpegPath();
@@ -121,6 +122,9 @@ ipcMain.handle('start-download', async (event, { url, format, quality, folder, c
         '-o', path.join(downloadsFolder, '%(title)s.%(ext)s'),
         '--newline',
     ];
+
+    if (embedThumbnail) args.push('--embed-thumbnail');
+    if (embedMetadata) args.push('--embed-metadata');
 
     if (cookies && cookies !== 'none') {
         args.push('--cookies-from-browser', cookies);
@@ -167,6 +171,17 @@ ipcMain.handle('start-download', async (event, { url, format, quality, folder, c
                 const percent = parseFloat(progressMatch[1]);
                 mainWindow.webContents.send('download-progress', percent);
             }
+
+            // Parse speed and ETA from yt-dlp output
+            const speedMatch = output.match(/at\s+([\d\.]+\s*[KMG]?i?B\/s)/);
+            if (speedMatch && speedMatch[1]) {
+                mainWindow.webContents.send('download-speed', speedMatch[1]);
+            }
+            const etaMatch = output.match(/ETA\s+([\d:]+)/);
+            if (etaMatch && etaMatch[1]) {
+                mainWindow.webContents.send('download-eta', etaMatch[1]);
+            }
+
             mainWindow.webContents.send('download-log', output);
         });
 
@@ -239,6 +254,8 @@ ipcMain.on('minimize-window', () => {
         mainWindow.minimize();
     }
 });
+
+
 
 ipcMain.on('close-window', () => {
     if (mainWindow && !mainWindow.isDestroyed()) {

@@ -105,15 +105,32 @@ body {
     color: #ffffff;
 }
 
-.update-top-btn:hover {
-    color: #ffffff;
-    border-color: var(--primary-color);
-    background: var(--card-bg);
+.settings-top-btn {
+    position: absolute;
+    right: 12px;
+    top: 9px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-app-region: no-drag;
+    padding: 0 8px;
 }
 
-.update-top-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.platform-win32 .settings-top-btn,
+.platform-linux .settings-top-btn {
+    right: 100px; /* displaced past close/minimize controls */
+}
+
+.settings-top-btn:hover {
+    color: #ffffff;
+    border-color: var(--primary-color);
+    background: rgba(255, 0, 0, 0.1);
 }
 
 
@@ -230,6 +247,99 @@ header p {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding-left: 0.1rem;
+}
+
+.info-notes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+    padding: 0 0.2rem;
+}
+
+.recommend-note, .dash-info-note {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    opacity: 0.8;
+    line-height: 1.35;
+}
+
+.recommend-note strong, .dash-info-note strong {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.separator-line {
+    width: 100%;
+    height: 1px;
+    background: var(--border-color);
+    margin: 0.15rem 0;
+    opacity: 0.7;
+}
+
+.options-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem;
+    width: 100%;
+}
+
+.options-card {
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.55rem 0.65rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.options-card-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    width: 100%;
+    padding-left: 0.2rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.8rem;
+    color: var(--text-color);
+    cursor: pointer;
+    text-transform: none;
+    letter-spacing: normal;
+    font-weight: 500;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.checkbox-label:has(input:disabled) {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .quality-grid {
@@ -368,3 +478,179 @@ select.secondary-btn {
     background-color: var(--primary-color);
     transition: width 0.2s ease;
 }
+
+/* ── Settings Overlay ─────────────────────────────────────────────────── */
+.settings-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(18, 18, 18, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease-out;
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+
+.settings-overlay.hidden {
+    display: none !important;
+}
+
+.settings-panel {
+    width: 100%;
+    max-width: 280px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    animation: zoomIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes zoomIn {
+    from { transform: scale(0.92); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-header h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.settings-close-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-close-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.settings-body {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.settings-divider {
+    height: 1px;
+    background: var(--border-color);
+    width: 100%;
+    margin: 0.2rem 0;
+}
+
+.update-action-btn {
+    background-color: var(--input-bg);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-app-region: no-drag;
+}
+
+.update-action-btn:hover {
+    color: #ffffff;
+    border-color: var(--primary-color);
+    background: rgba(255, 0, 0, 0.1);
+}
+
+.settings-credit {
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    opacity: 0.6;
+    margin-top: 0.25rem;
+}
+
+.settings-about {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0 0.8rem;
+}
+
+.settings-logo {
+    height: 48px;
+    object-fit: contain;
+}
+
+.settings-app-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.settings-app-version {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.settings-credit-inline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    margin-top: 0.35rem;
+}
+
+.credit-author {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.credit-author strong {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.credit-powered {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.credit-powered strong {
+    color: #ff3b30; /* Red */
+    font-weight: 700;
+}
+
+.settings-tip-note {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 0.35rem;
+    line-height: 1.35;
+    opacity: 0.8;
+}
+
+

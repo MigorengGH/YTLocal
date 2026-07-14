@@ -10,12 +10,12 @@
 <body>
     <!-- Draggable titlebar area for frameless window dragging -->
     <div class="titlebar">
-        <button id="update-btn" class="update-top-btn" title="Reinstall / Update App">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
-                <polyline points="23 4 23 10 17 10"></polyline>
-                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        <button id="settings-btn" class="settings-top-btn" title="App Settings">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
             </svg>
-            <span>Update</span>
+            <span style="font-size: 0.8rem; font-weight: 600; margin-left: 5px;">Settings</span>
         </button>
         <div id="window-controls" class="window-controls">
             <button id="minimize-btn" class="control-btn minimize" title="Minimize">
@@ -42,6 +42,9 @@
                 </button>
             </div>
 
+
+
+
             <div class="format-toggle">
                 <div class="toggle-option">
                     <input type="radio" id="format-video" name="format" value="video" checked>
@@ -64,6 +67,7 @@
                 <div id="quality-buttons" class="quality-grid">
                     <!-- Dynamic buttons -->
                 </div>
+
             </div>
 
             <div class="options-section">
@@ -74,8 +78,11 @@
                 </button>
             </div>
 
-            <div class="options-section">
-                <label>Cookies (for bot bypass)</label>
+
+            <div class="options-card" style="margin-top: 0.2rem;">
+                <label class="options-card-title">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: middle;"><path d="M12 2a10 10 0 1 0 10 10c0-1-1-2-2-2h-2c-1 0-2-1-2-2V4c0-1-1-2-2-2z"></path><circle cx="7.5" cy="10.5" r=".5"></circle><circle cx="11.5" cy="14.5" r=".5"></circle><circle cx="16.5" cy="11.5" r=".5"></circle></svg>Cookies (for bot bypass)
+                </label>
                 <select id="cookies-select" class="secondary-btn">
                     <option value="none">Don't use cookies (Default)</option>
                     <option value="chrome">Chrome</option>
@@ -108,11 +115,85 @@
                 <div class="progress-bar-bg">
                     <div id="progress-bar" class="progress-bar-fill"></div>
                 </div>
+                <div id="download-info-row" class="download-info-row">
+                    <span id="speed-text"></span>
+                    <span id="eta-text"></span>
+                </div>
             </div>
         </div>
 
-        
-        <div class="footer-tag" style="text-align: center; margin-top: 5px; font-size: 0.7rem; color: var(--text-muted); opacity: 0.7; width: 100%;">created by Fahimi Amir powered by yt-dlp</div>
+        <div class="info-notes-container">
+            <p class="recommend-note">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <span>Copy links from <strong>Google Chrome</strong> for best compatibility.</span>
+            </p>
+        </div>
+
+    </div>
+
+    <!-- Settings Overlay -->
+    <div id="settings-overlay" class="settings-overlay hidden">
+        <div class="settings-panel">
+            <div class="settings-header">
+                <h3>Settings</h3>
+                <button id="settings-close-btn" class="settings-close-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            
+            <div class="settings-body">
+                <div class="settings-about">
+                    <img src="YTlocal.png" class="settings-logo" alt="YTlocal">
+                    <div class="settings-app-name">YTlocal</div>
+                    <div class="settings-app-version">v1.1.0</div>
+                    <div class="settings-credit-inline">
+                        <span class="credit-author">created by <strong>Fahimi Amir</strong></span>
+                        <span class="credit-powered">powered by <strong>yt-dlp</strong></span>
+                    </div>
+                </div>
+
+                <div class="settings-divider"></div>
+
+                <div class="options-card" style="width: 100%;">
+                    <label class="options-card-title">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: middle;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>Metadata Options
+                    </label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="embed-thumbnail">
+                            <span>Embed Thumbnail (requires ffprobe)</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="embed-metadata" checked>
+                            <span>Embed Metadata (ID3 tags)</span>
+                        </label>
+                        <p class="settings-tip-note">
+                            💡 Disabling metadata speeds up download and prevents post-processing errors.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="settings-divider"></div>
+
+                <div class="options-card" style="width: 100%;">
+                    <label class="options-card-title" style="display: flex; align-items: center; gap: 4px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        What is DASH?
+                    </label>
+                    <p style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; margin: 0.2rem 0 0 0;">
+                        YouTube serves high-quality video (1080p and above) as separate audio and video files. 
+                        <strong>DASH</strong> merges these streams automatically using FFmpeg during download.
+                    </p>
+                </div>
+
+                <div class="settings-divider"></div>
+
+                <button id="update-btn" class="secondary-btn update-action-btn" style="width: 100%; justify-content: center; gap: 6px; padding: 0.65rem 0.85rem; font-size: 0.85rem; font-weight: 600;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                    Update / Reinstall App
+                </button>
+            </div>
+        </div>
     </div>
     <script src="renderer.js"></script>
 </body>
