@@ -59,6 +59,52 @@ body {
     -webkit-app-region: no-drag;
 }
 
+/* Custom Window Controls (Minimize & Close) for Non-macOS Platforms */
+.window-controls {
+    display: none; /* Hidden by default (e.g. on macOS) */
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 38px;
+    align-items: center;
+    -webkit-app-region: no-drag;
+}
+
+/* Show window controls on non-macOS platforms */
+.platform-win32 .window-controls,
+.platform-linux .window-controls {
+    display: flex;
+}
+
+/* Push the Update button to the left if window controls are present */
+.platform-win32 .update-top-btn,
+.platform-linux .update-top-btn {
+    right: 100px;
+}
+
+.control-btn {
+    width: 44px;
+    height: 38px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.control-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+.control-btn.close:hover {
+    background-color: #e81123;
+    color: #ffffff;
+}
+
 .update-top-btn:hover {
     color: #ffffff;
     border-color: var(--primary-color);

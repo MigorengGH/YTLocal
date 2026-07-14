@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, nativeImage } = require('electron')
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-const { spawn, execFileSync } = require('child_process');
+const { spawn, execFileSync, exec } = require('child_process');
 const ffmpegStaticPath = require('ffmpeg-static');
 
 // Resolve yt-dlp binary:
@@ -54,13 +54,17 @@ function ensureBinaryPermissions() {
 let mainWindow;
 let currentDownloadProcess = null;
 let currentDownloadFiles = [];
+let lockedContentWidth = null;
 
 function createWindow() {
+    lockedContentWidth = null;
+    const isMac = process.platform === 'darwin';
     mainWindow = new BrowserWindow({
         width: 380,
         height: 620,
         resizable: false,
-        titleBarStyle: 'hidden',
+        frame: isMac,
+        titleBarStyle: isMac ? 'hidden' : 'default',
         icon: path.join(__dirname, 'YTlocal.png'),
         webPreferences: {
             nodeIntegration: true,
@@ -214,34 +218,41 @@ ipcMain.handle('cancel-download', () => {
 
 ipcMain.on('resize-window', (event, height) => {
     if (mainWindow && !mainWindow.isDestroyed()) {
-        const bounds = mainWindow.getBounds();
-        if (bounds.height !== height) {
-            mainWindow.setSize(bounds.width, height, true); // true for animation on macOS
+        const [currentWidth, currentHeight] = mainWindow.getContentSize();
+        if (lockedContentWidth === null) {
+            lockedContentWidth = currentWidth;
+        }
+        // Avoid sub-pixel jitter feedback loops by checking if difference > 1
+        if (Math.abs(currentHeight - height) > 1) {
+            // Disable animation on Windows/Linux (macOS only) to prevent resize cascades
+            mainWindow.setContentSize(lockedContentWidth, height, process.platform === 'darwin');
         }
     }
 });
 
-ipcMain.handle('update-ytdlp', async () => {
-    const ytDlpPath = getYtDlpPath();
-    let output = '';
+ipcMain.on('minimize-window', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.minimize();
+    }
+});
 
-    return new Promise((resolve) => {
-        const subprocess = spawn(ytDlpPath, ['-U']);
+ipcMain.on('close-window', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.close();
+    }
+});
 
-        subprocess.stdout.on('data', (data) => {
-            output += data.toString();
-        });
-
-        subprocess.stderr.on('data', (data) => {
-            output += data.toString();
-        });
-
-        subprocess.on('close', (code) => {
-            resolve({ success: code === 0, output });
-        });
-
-        subprocess.on('error', (err) => {
-            resolve({ success: false, output: err.message });
-        });
-    });
+ipcMain.handle('update-app', () => {
+    if (process.platform === 'win32') {
+        const cmd = `cmd.exe /c start powershell.exe -NoProfile -ExecutionPolicy Bypass -NoExit -Command "Start-Sleep -Seconds 2; Write-Host '🚀 Reinstalling YTLocal...'; irm 'https://raw.githubusercontent.com/MigorengGH/YTLocal/main/install.ps1' | iex"`;
+        exec(cmd);
+    } else if (process.platform === 'darwin') {
+        const cmd = `osascript -e 'tell application "Terminal" to do script "sleep 2; echo \\"🚀 Reinstalling YTLocal...\\"; curl -fsSL \\"https://raw.githubusercontent.com/MigorengGH/YTLocal/main/install.sh\\" | bash"'`;
+        exec(cmd);
+    }
+    
+    // Graceful exit after brief timeout to ensure background task has spawned
+    setTimeout(() => {
+        app.quit();
+    }, 500);
 });

@@ -1,5 +1,24 @@
 const { ipcRenderer, clipboard } = require('electron');
 
+// Add platform class to body for custom CSS rules (e.g. showing close/minimize buttons on Windows/Linux)
+document.body.classList.add(`platform-${process.platform}`);
+
+// Handle custom window controls
+const minimizeBtn = document.getElementById('minimize-btn');
+const closeBtn = document.getElementById('close-btn');
+
+if (minimizeBtn) {
+    minimizeBtn.addEventListener('click', () => {
+        ipcRenderer.send('minimize-window');
+    });
+}
+
+if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+        ipcRenderer.send('close-window');
+    });
+}
+
 const urlInput = document.getElementById('url-input');
 const pasteBtn = document.getElementById('paste-btn');
 const formatVideo = document.getElementById('format-video');
@@ -158,40 +177,27 @@ if (updateBtn) {
         if (pasteBtn) pasteBtn.disabled = true;
         downloadBtn.style.display = 'none';
         statusContainer.classList.remove('hidden');
-        statusText.innerText = 'Checking for updates...';
-        progressBar.style.width = '50%';
+        statusText.innerText = 'Launching installer...';
+        progressBar.style.width = '100%';
         statusPercent.innerText = '';
         
-        const result = await ipcRenderer.invoke('update-ytdlp');
-        
-        if (result.success) {
-            statusText.innerText = result.output.includes('Up to date') ? 'yt-dlp is already up to date' : 'Update successful!';
-            progressBar.style.backgroundColor = 'var(--primary-color)';
-            progressBar.style.width = '100%';
-        } else {
-            statusText.innerText = `Update failed`;
-            progressBar.style.backgroundColor = '#ff4444';
-            progressBar.style.width = '100%';
-            console.error('Update output:', result.output);
-        }
-        
-        setTimeout(() => {
-            statusContainer.classList.add('hidden');
-            progressBar.style.width = '0%';
-            progressBar.style.backgroundColor = 'var(--primary-color)';
-            updateBtn.disabled = false;
-            if (pasteBtn) pasteBtn.disabled = false;
-            downloadBtn.style.display = 'block';
-        }, 4000);
+        // Wait 1 second to show the text to the user, then invoke update-app
+        setTimeout(async () => {
+            await ipcRenderer.invoke('update-app');
+        }, 1000);
     });
 }
 
 // Auto-resize window based on content
 const container = document.querySelector('.container');
 if (container) {
+    let lastHeight = 0;
     const resizeObserver = new ResizeObserver(() => {
         const height = container.scrollHeight;
-        ipcRenderer.send('resize-window', height);
+        if (height !== lastHeight) {
+            lastHeight = height;
+            ipcRenderer.send('resize-window', height);
+        }
     });
     resizeObserver.observe(container);
 }
