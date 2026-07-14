@@ -41,6 +41,13 @@ curl -L "$DMG_URL" -o "$TMP_DMG" --progress-bar
 echo "📦 Mounting disk image..."
 MOUNT_POINT=$(hdiutil attach "$TMP_DMG" -nobrowse -noautoopen | grep /Volumes | perl -pe 's/.*(\/Volumes\/.*)/\1/' | tr -d '\n')
 
+# Ensure YTLocal is not running to avoid file lock/uninstall issues
+if pgrep -x "YTLocal" > /dev/null; then
+    echo "🛑 Closing running instances of YTLocal..."
+    pkill -x "YTLocal" || true
+    sleep 1
+fi
+
 echo "📂 Installing to $INSTALL_DIR..."
 
 if [ -d "$INSTALL_DIR/$APP_NAME.app" ]; then

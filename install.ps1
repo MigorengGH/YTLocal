@@ -32,6 +32,14 @@ Write-Host "📥 Downloading $($ExeAsset.name)..." -ForegroundColor Yellow
 $WebClient = New-Object System.Net.WebClient
 $WebClient.DownloadFile($DownloadUrl, $TempPath)
 
+# Ensure YTLocal is not running to avoid file lock/uninstall issues
+$RunningProcesses = Get-Process -Name "YTLocal" -ErrorAction SilentlyContinue
+if ($RunningProcesses) {
+    Write-Host "🛑 Closing running instances of YTLocal..." -ForegroundColor Yellow
+    $RunningProcesses | Stop-Process -Force
+    Start-Sleep -Seconds 1
+}
+
 Write-Host "🚀 Running Installer..." -ForegroundColor Yellow
 # Start the NSIS installer. It runs automatically because we built it with oneClick=true
 Start-Process -FilePath $TempPath -Wait
