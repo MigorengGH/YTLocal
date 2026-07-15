@@ -26,7 +26,7 @@ curl -fsSL "https://raw.githubusercontent.com/MigorengGH/YTLocal/main/install.sh
 ```
 > *Fixes permissions and "damaged app" warnings automatically.*
 
-**🪟 Windows**
+**🪟 Windows (via powershell)**
 ```powershell
 irm "https://raw.githubusercontent.com/MigorengGH/YTLocal/main/install.ps1" | iex
 ```
