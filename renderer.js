@@ -81,21 +81,73 @@ folderBtn.addEventListener('click', async () => {
 // ── Video Info / Playlist preview ──
 let fetchTimer;
 let currentPlaylistItems = [];
+let currentFetchUrl = '';
 
 urlInput.addEventListener('input', () => {
     clearTimeout(fetchTimer);
     const url = urlInput.value.trim();
+    currentFetchUrl = url;
     const previewContainer = document.getElementById('video-preview-container');
     const playlistContainer = document.getElementById('playlist-container');
 
     if (!url || (!url.includes('youtube.com') && !url.includes('youtu.be'))) {
         previewContainer.classList.add('hidden');
         playlistContainer.classList.add('hidden');
+        downloadBtn.disabled = false;
+        downloadBtn.innerText = 'Download';
         return;
+    }
+    
+    // Set immediate loading states
+    const isPlaylist = url.includes('list=');
+    if (isPlaylist) {
+        playlistContainer.classList.remove('hidden');
+        previewContainer.classList.remove('hidden');
+        
+        const itemsContainer = document.getElementById('playlist-items');
+        if (itemsContainer) {
+            itemsContainer.innerHTML = `
+                <div class="loading-placeholder" style="text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;">
+                        <line x1="12" y1="2" x2="12" y2="6"></line>
+                        <line x1="12" y1="18" x2="12" y2="22"></line>
+                        <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                        <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                        <line x1="2" y1="12" x2="6" y2="12"></line>
+                        <line x1="18" y1="12" x2="22" y2="12"></line>
+                        <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                        <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                    </svg>
+                    <span>Loading playlist items...</span>
+                </div>
+            `;
+        }
+        document.getElementById('playlist-count').innerText = 'Loading...';
+        
+        document.getElementById('preview-thumbnail').src = 'YTlocal.png';
+        document.getElementById('preview-title').innerText = 'Loading playlist details...';
+        document.getElementById('preview-channel').innerText = '';
+        document.getElementById('preview-duration').innerText = '';
+        
+        downloadBtn.disabled = true;
+        downloadBtn.innerText = 'Loading Playlist...';
+    } else {
+        playlistContainer.classList.add('hidden');
+        previewContainer.classList.remove('hidden');
+        
+        document.getElementById('preview-thumbnail').src = 'YTlocal.png';
+        document.getElementById('preview-title').innerText = 'Loading video details...';
+        document.getElementById('preview-channel').innerText = '';
+        document.getElementById('preview-duration').innerText = '';
+        
+        downloadBtn.disabled = true;
+        downloadBtn.innerText = 'Loading Video Info...';
     }
     
     fetchTimer = setTimeout(async () => {
         const result = await ipcRenderer.invoke('get-video-info', url);
+        if (url !== currentFetchUrl) return;
+        
         if (result.success) {
             if (result.isPlaylist) {
                 previewContainer.classList.remove('hidden');
@@ -117,6 +169,13 @@ urlInput.addEventListener('input', () => {
                 const dur = result.info.duration ? new Date(result.info.duration * 1000).toISOString().substr(11, 8).replace(/^00:/, '') : '';
                 document.getElementById('preview-duration').innerText = dur;
             }
+            downloadBtn.disabled = false;
+            downloadBtn.innerText = 'Download';
+        } else {
+            previewContainer.classList.add('hidden');
+            playlistContainer.classList.add('hidden');
+            downloadBtn.disabled = false;
+            downloadBtn.innerText = 'Download';
         }
     }, 500);
 });
@@ -209,6 +268,10 @@ downloadBtn.addEventListener('click', async () => {
     statusText.innerText = 'Starting download...';
     clearSpeedEta();
 
+    // Hide Chrome recommendation note to save space during active download
+    const infoNotes = document.querySelector('.info-notes-container');
+    if (infoNotes) infoNotes.style.display = 'none';
+
     const embedThumbnail = document.getElementById('embed-thumbnail').checked;
     const embedMetadata = document.getElementById('embed-metadata').checked;
     const writeSubs = document.getElementById('write-subs')?.checked || false;
@@ -225,6 +288,13 @@ downloadBtn.addEventListener('click', async () => {
         progressBar.style.width = '100%';
         statusPercent.innerText = '100%';
         
+        // Hide preview card and playlist card immediately, clear URL input and items
+        const previewContainer = document.getElementById('video-preview-container');
+        const playlistContainer = document.getElementById('playlist-container');
+        if (previewContainer) previewContainer.classList.add('hidden');
+        if (playlistContainer) playlistContainer.classList.add('hidden');
+        urlInput.value = '';
+        currentPlaylistItems = [];
     } else {
         statusText.innerText = `Error: ${result.error || 'Failed'}`;
         progressBar.style.backgroundColor = '#ff4444';
@@ -242,6 +312,9 @@ downloadBtn.addEventListener('click', async () => {
         if(result.success) urlInput.value = '';
         cancelBtn.style.display = 'none';
         downloadBtn.style.display = 'block';
+        
+        // Show Chrome recommendation note again
+        if (infoNotes) infoNotes.style.display = '';
     }, 4000);
 });
 

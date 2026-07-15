@@ -888,4 +888,12 @@ select.secondary-btn {
     margin-top: 0.1rem;
     line-height: 1.25;
     opacity: 0.8;
+}
 
+.download-info-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 0.35rem;
+}

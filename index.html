@@ -119,10 +119,10 @@
             <button id="download-btn">Download</button>
             <button id="cancel-btn" style="display: none; width: 100%; padding: 0.85rem; font-size: 1rem; font-weight: 700; color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">Cancel</button>
 
-            <div id="status-container" class="hidden" style="margin-top: 0.8rem; margin-bottom: 0.5rem;">
+            <div id="status-container" class="hidden" style="margin-top: 0.6rem; margin-bottom: 0.4rem; min-width: 0;">
                 <div class="status-header">
-                    <div style="display: flex; align-items: flex-start; gap: 6px; flex: 1;">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite; flex-shrink: 0; margin-top: 2px;">
+                    <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite; flex-shrink: 0;">
                             <line x1="12" y1="2" x2="12" y2="6"></line>
                             <line x1="12" y1="18" x2="12" y2="22"></line>
                             <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
@@ -132,7 +132,7 @@
                             <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
                             <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
                         </svg>
-                        <span id="status-text" style="word-break: break-word; line-height: 1.4;">Starting...</span>
+                        <span id="status-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; line-height: 1.2;">Starting...</span>
                     </div>
                     <span id="status-percent">0%</span>
                 </div>
