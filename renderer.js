@@ -1,23 +1,13 @@
 const { ipcRenderer, clipboard } = require('electron');
 
-// Add platform class to body for custom CSS rules (e.g. showing close/minimize buttons on Windows/Linux)
+// Add platform class to body for custom CSS rules
 document.body.classList.add(`platform-${process.platform}`);
 
-// Handle custom window controls
 const minimizeBtn = document.getElementById('minimize-btn');
 const closeBtn = document.getElementById('close-btn');
 
-if (minimizeBtn) {
-    minimizeBtn.addEventListener('click', () => {
-        ipcRenderer.send('minimize-window');
-    });
-}
-
-if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-        ipcRenderer.send('close-window');
-    });
-}
+if (minimizeBtn) minimizeBtn.addEventListener('click', () => ipcRenderer.send('minimize-window'));
+if (closeBtn) closeBtn.addEventListener('click', () => ipcRenderer.send('close-window'));
 
 const urlInput = document.getElementById('url-input');
 const pasteBtn = document.getElementById('paste-btn');
@@ -32,6 +22,8 @@ const statusContainer = document.getElementById('status-container');
 const statusText = document.getElementById('status-text');
 const statusPercent = document.getElementById('status-percent');
 const progressBar = document.getElementById('progress-bar');
+const speedText = document.getElementById('speed-text');
+const etaText = document.getElementById('eta-text');
 
 let selectedFolder = null;
 let currentQuality = 'best';
@@ -62,9 +54,7 @@ function populateQualityButtons(isAudio) {
     options.forEach(opt => {
         const btn = document.createElement('button');
         btn.className = 'quality-btn';
-        if (opt.value === currentQuality) {
-            btn.classList.add('selected');
-        }
+        if (opt.value === currentQuality) btn.classList.add('selected');
         btn.innerText = opt.label;
         btn.onclick = () => {
             currentQuality = opt.value;
@@ -75,9 +65,7 @@ function populateQualityButtons(isAudio) {
     });
 }
 
-// Initial populate
 populateQualityButtons(false);
-
 formatVideo.addEventListener('change', () => populateQualityButtons(false));
 formatAudio.addEventListener('change', () => populateQualityButtons(true));
 
@@ -85,12 +73,84 @@ folderBtn.addEventListener('click', async () => {
     const path = await ipcRenderer.invoke('select-folder');
     if (path) {
         selectedFolder = path;
-        const folderName = path.split(/[/\\]/).pop();
-        folderPathDisplay.innerText = folderName;
+        folderPathDisplay.innerText = path.split(/[/\\]/).pop();
         folderPathDisplay.title = path;
     }
 });
 
+// ── Video Info / Playlist preview ──
+let fetchTimer;
+let currentPlaylistItems = [];
+
+urlInput.addEventListener('input', () => {
+    clearTimeout(fetchTimer);
+    const url = urlInput.value.trim();
+    const previewContainer = document.getElementById('video-preview-container');
+    const playlistContainer = document.getElementById('playlist-container');
+
+    if (!url || (!url.includes('youtube.com') && !url.includes('youtu.be'))) {
+        previewContainer.classList.add('hidden');
+        playlistContainer.classList.add('hidden');
+        return;
+    }
+    
+    fetchTimer = setTimeout(async () => {
+        const result = await ipcRenderer.invoke('get-video-info', url);
+        if (result.success) {
+            if (result.isPlaylist) {
+                previewContainer.classList.remove('hidden');
+                playlistContainer.classList.remove('hidden');
+                currentPlaylistItems = result.items;
+                renderPlaylist(result.items);
+                
+                const first = result.items[0] || {};
+                document.getElementById('preview-thumbnail').src = first.thumbnails?.[0]?.url || first.thumbnail || 'YTlocal.png';
+                document.getElementById('preview-title').innerText = first.playlist_title || 'Batch Download';
+                document.getElementById('preview-channel').innerText = first.playlist_uploader || first.uploader || '';
+                document.getElementById('preview-duration').innerText = `${result.items.length} items`;
+            } else {
+                playlistContainer.classList.add('hidden');
+                previewContainer.classList.remove('hidden');
+                document.getElementById('preview-thumbnail').src = result.info.thumbnail || 'YTlocal.png';
+                document.getElementById('preview-title').innerText = result.info.title || 'Unknown Title';
+                document.getElementById('preview-channel').innerText = result.info.uploader || 'Unknown Channel';
+                const dur = result.info.duration ? new Date(result.info.duration * 1000).toISOString().substr(11, 8).replace(/^00:/, '') : '';
+                document.getElementById('preview-duration').innerText = dur;
+            }
+        }
+    }, 500);
+});
+
+function renderPlaylist(items) {
+    const container = document.getElementById('playlist-items');
+    container.innerHTML = '';
+    document.getElementById('playlist-count').innerText = `${items.length} items`;
+    items.forEach((item) => {
+        const div = document.createElement('div');
+        div.className = 'playlist-item';
+        const dur = item.duration ? new Date(item.duration * 1000).toISOString().substr(11, 8).replace(/^00:/, '') : '';
+        div.innerHTML = `
+            <input type="checkbox" class="playlist-item-check" data-url="${item.url}" checked>
+            <span class="playlist-item-title">${item.title}</span>
+            <span class="playlist-item-duration">${dur}</span>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function formatTime(secs) {
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = Math.floor(secs % 60);
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+document.getElementById('playlist-select-all').addEventListener('change', (e) => {
+    const checks = document.querySelectorAll('.playlist-item-check');
+    checks.forEach(c => c.checked = e.target.checked);
+});
+
+// ── Status & Progress ──
 ipcRenderer.on('update-status', (event, message) => {
     if (message === 'Ready' || message.includes('failed')) {
         statusContainer.classList.add('hidden');
@@ -112,18 +172,28 @@ ipcRenderer.on('download-log', (event, text) => {
     }
 });
 
-if (pasteBtn) {
-    pasteBtn.addEventListener('click', () => {
-        const text = clipboard.readText();
-        if (text) {
-            urlInput.value = text.trim();
-        }
-    });
+ipcRenderer.on('download-speed', (event, speed) => speedText && (speedText.innerText = `↓ ${speed}`));
+ipcRenderer.on('download-eta', (event, eta) => etaText && (etaText.innerText = `ETA ${eta}`));
+
+function clearSpeedEta() {
+    if (speedText) speedText.innerText = '';
+    if (etaText) etaText.innerText = '';
 }
 
+// ── Download Trigger ──
 downloadBtn.addEventListener('click', async () => {
     const url = urlInput.value.trim();
     if (!url) return;
+
+    let urls = [];
+    if (!document.getElementById('playlist-container').classList.contains('hidden')) {
+        const checks = document.querySelectorAll('.playlist-item-check:checked');
+        urls = Array.from(checks).map(c => c.dataset.url);
+    } else {
+        urls = [url];
+    }
+    
+    if (urls.length === 0) return;
 
     const format = formatVideo.checked ? 'video' : 'audio';
     const cookiesSelect = document.getElementById('cookies-select');
@@ -137,49 +207,39 @@ downloadBtn.addEventListener('click', async () => {
     progressBar.style.width = '0%';
     statusPercent.innerText = '0%';
     statusText.innerText = 'Starting download...';
+    clearSpeedEta();
 
-    const embedThumbnailInput = document.getElementById('embed-thumbnail');
-    const embedMetadataInput = document.getElementById('embed-metadata');
-    embedThumbnailInput.disabled = true;
-    embedMetadataInput.disabled = true;
-
-    const embedThumbnail = embedThumbnailInput.checked;
-    const embedMetadata = embedMetadataInput.checked;
+    const embedThumbnail = document.getElementById('embed-thumbnail').checked;
+    const embedMetadata = document.getElementById('embed-metadata').checked;
+    const writeSubs = document.getElementById('write-subs')?.checked || false;
+    const subLangs = document.getElementById('sub-langs')?.value || '';
+    const speedLimit = document.getElementById('speed-limit')?.value || 'unlimited';
 
     const result = await ipcRenderer.invoke('start-download', { 
-        url, 
-        format, 
-        quality: currentQuality, 
-        folder: selectedFolder,
-        cookies,
-        embedThumbnail,
-        embedMetadata
+        urls, format, quality: currentQuality, folder: selectedFolder, cookies,
+        embedThumbnail, embedMetadata, writeSubs, subLangs, speedLimit
     });
 
     if (result.success) {
         statusText.innerText = 'Download complete!';
         progressBar.style.width = '100%';
         statusPercent.innerText = '100%';
-        clearSpeedEta();
+        
     } else {
         statusText.innerText = `Error: ${result.error || 'Failed'}`;
         progressBar.style.backgroundColor = '#ff4444';
         statusPercent.innerText = '';
-        clearSpeedEta();
     }
+    clearSpeedEta();
 
     urlInput.disabled = false;
     if (pasteBtn) pasteBtn.disabled = false;
-    embedThumbnailInput.disabled = false;
-    embedMetadataInput.disabled = false;
     
     setTimeout(() => {
         statusContainer.classList.add('hidden');
         progressBar.style.width = '0%';
         progressBar.style.backgroundColor = 'var(--primary-color)';
-        if(result.success) {
-            urlInput.value = '';
-        }
+        if(result.success) urlInput.value = '';
         cancelBtn.style.display = 'none';
         downloadBtn.style.display = 'block';
     }, 4000);
@@ -193,94 +253,63 @@ if (cancelBtn) {
     });
 }
 
+// ── Overlays ──
+function setupOverlay(btnId, overlayId, closeBtnId) {
+    const btn = document.getElementById(btnId);
+    const overlay = document.getElementById(overlayId);
+    const closeBtn = document.getElementById(closeBtnId);
+    if (!btn || !overlay || !closeBtn) return;
+    
+    btn.addEventListener('click', () => {
+        overlay.classList.remove('hidden');
+        if (overlayId === 'history-overlay') loadHistory();
+    });
+    closeBtn.addEventListener('click', () => overlay.classList.add('hidden'));
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.add('hidden');
+    });
+}
+
+setupOverlay('settings-btn', 'settings-overlay', 'settings-close-btn');
+// ── Clipboard Manual Paste ──
+if (pasteBtn) {
+    pasteBtn.addEventListener('click', () => {
+        const text = clipboard.readText();
+        if (text) {
+            urlInput.value = text.trim();
+            urlInput.dispatchEvent(new Event('input'));
+        }
+    });
+}
+
+// Update
 const updateBtn = document.getElementById('update-btn');
 if (updateBtn) {
     updateBtn.addEventListener('click', async () => {
         updateBtn.disabled = true;
-        if (pasteBtn) pasteBtn.disabled = true;
         downloadBtn.style.display = 'none';
         statusContainer.classList.remove('hidden');
         statusText.innerText = 'Launching installer...';
         progressBar.style.width = '100%';
         statusPercent.innerText = '';
-        
-        // Wait 1 second to show the text to the user, then invoke update-app
-        setTimeout(async () => {
-            await ipcRenderer.invoke('update-app');
-        }, 1000);
+        setTimeout(async () => await ipcRenderer.invoke('update-app'), 1000);
     });
 }
 
-// Auto-resize window based on content
+// Auto-resize
 const container = document.querySelector('.container');
 if (container) {
     let lastHeight = 0;
-    const resizeObserver = new ResizeObserver(() => {
+    new ResizeObserver(() => {
         const height = container.scrollHeight;
         if (height !== lastHeight) {
             lastHeight = height;
             ipcRenderer.send('resize-window', height);
         }
-    });
-    resizeObserver.observe(container);
+    }).observe(container);
 }
 
-// Hide safari option on non-macOS platforms
 if (process.platform !== 'darwin') {
     const safariOpt = document.querySelector('#cookies-select option[value="safari"]');
     if (safariOpt) safariOpt.remove();
 }
-
-// ── Speed & ETA Indicators ──────────────────────────────────────────────
-const speedText = document.getElementById('speed-text');
-const etaText = document.getElementById('eta-text');
-
-ipcRenderer.on('download-speed', (event, speed) => {
-    if (speedText) speedText.innerText = `↓ ${speed}`;
-});
-
-ipcRenderer.on('download-eta', (event, eta) => {
-    if (etaText) etaText.innerText = `ETA ${eta}`;
-});
-
-// Clear speed/ETA when download finishes or is cancelled
-function clearSpeedEta() {
-    if (speedText) speedText.innerText = '';
-    if (etaText) etaText.innerText = '';
-}
-
-// Patch into existing download completion flow
-const originalDownloadClick = downloadBtn.onclick;
-downloadBtn.addEventListener('click', () => {
-    clearSpeedEta();
-});
-
-// ── Settings Panel Toggle ──────────────────────────────────────────────
-const settingsBtn = document.getElementById('settings-btn');
-const settingsOverlay = document.getElementById('settings-overlay');
-const settingsCloseBtn = document.getElementById('settings-close-btn');
-
-if (settingsBtn && settingsOverlay) {
-    settingsBtn.addEventListener('click', () => {
-        settingsOverlay.classList.remove('hidden');
-    });
-}
-
-if (settingsCloseBtn && settingsOverlay) {
-    settingsCloseBtn.addEventListener('click', () => {
-        settingsOverlay.classList.add('hidden');
-    });
-}
-
-if (settingsOverlay) {
-    settingsOverlay.addEventListener('click', (e) => {
-        if (e.target === settingsOverlay) {
-            settingsOverlay.classList.add('hidden');
-        }
-    });
-}
-
-
-
-
-

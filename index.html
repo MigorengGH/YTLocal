@@ -17,6 +17,7 @@
             </svg>
             <span style="font-size: 0.8rem; font-weight: 600; margin-left: 5px;">Settings</span>
         </button>
+
         <div id="window-controls" class="window-controls">
             <button id="minimize-btn" class="control-btn minimize" title="Minimize">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -36,7 +37,7 @@
         <div class="content-wrapper">
             <div class="input-group" style="display: flex; gap: 0.4rem;">
                 <input type="text" id="url-input" placeholder="https://youtube.com/..." autocomplete="off" style="flex: 1; min-width: 0;">
-                <button id="paste-btn" class="secondary-btn" style="width: auto; padding: 0.75rem 0.95rem; flex-shrink: 0;" title="Paste Link">
+                <button id="paste-btn" class="secondary-btn" style="width: auto; padding: 0.5rem 0.7rem; flex-shrink: 0;" title="Paste Link">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
                     Paste
                 </button>
@@ -44,6 +45,28 @@
 
 
 
+
+            <div id="video-preview-container" class="preview-card hidden">
+                <img id="preview-thumbnail" src="" class="preview-thumb">
+                <div class="preview-info">
+                    <div id="preview-title" class="preview-title"></div>
+                    <div id="preview-channel" class="preview-channel"></div>
+                    <div id="preview-duration" class="preview-duration"></div>
+                </div>
+            </div>
+
+            <div id="playlist-container" class="playlist-card hidden">
+                <div class="playlist-header">
+                    <label class="checkbox-label" style="margin:0;">
+                        <input type="checkbox" id="playlist-select-all" checked>
+                        <span>Select All</span>
+                    </label>
+                    <span id="playlist-count" class="playlist-count-label">0 items</span>
+                </div>
+                <div id="playlist-items" class="playlist-items">
+                    <!-- Dynamic items -->
+                </div>
+            </div>
 
             <div class="format-toggle">
                 <div class="toggle-option">
@@ -69,6 +92,7 @@
                 </div>
 
             </div>
+
 
             <div class="options-section">
                 <label>Save to</label>
@@ -131,6 +155,8 @@
 
     </div>
 
+
+
     <!-- Settings Overlay -->
     <div id="settings-overlay" class="settings-overlay hidden">
         <div class="settings-panel">
@@ -143,7 +169,6 @@
             
             <div class="settings-body">
                 <div class="settings-about">
-                    <img src="YTlocal.png" class="settings-logo" alt="YTlocal">
                     <div class="settings-app-name">YTlocal</div>
                     <div class="settings-app-version">v1.1.0</div>
                     <div class="settings-credit-inline">
@@ -176,17 +201,37 @@
                 <div class="settings-divider"></div>
 
                 <div class="options-card" style="width: 100%;">
-                    <label class="options-card-title" style="display: flex; align-items: center; gap: 4px;">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                        What is DASH?
+                    <label class="options-card-title">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: middle;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>Subtitles & Language
                     </label>
-                    <p style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; margin: 0.2rem 0 0 0;">
-                        YouTube serves high-quality video (1080p and above) as separate audio and video files. 
-                        <strong>DASH</strong> merges these streams automatically using FFmpeg during download.
-                    </p>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="write-subs">
+                            <span>Download Subtitles (.srt/.vtt)</span>
+                        </label>
+
+                        <input type="text" id="sub-langs" placeholder="Langs (e.g. en,es,all)" class="time-input" style="margin-top: 5px; font-size: 0.8rem; padding: 0.4rem; width: 100%;">
+                    </div>
                 </div>
 
                 <div class="settings-divider"></div>
+
+                <div class="options-card" style="width: 100%;">
+                    <label class="options-card-title">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: middle;">
+                            <path d="M7 4v16M7 4l-4 4M7 4l4 4M17 20V4M17 20l-4-4M17 20l4-4" />
+                        </svg>Download Speed Limit
+                    </label>
+                    <select id="speed-limit" class="secondary-btn">
+                        <option value="unlimited">Unlimited (Default)</option>
+                        <option value="1M">1 MB/s</option>
+                        <option value="2.5M">2.5 MB/s</option>
+                        <option value="5M">5 MB/s</option>
+                        <option value="10M">10 MB/s</option>
+                    </select>
+                </div>
+
+
 
                 <button id="update-btn" class="secondary-btn update-action-btn" style="width: 100%; justify-content: center; gap: 6px; padding: 0.65rem 0.85rem; font-size: 0.85rem; font-weight: 600;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
@@ -195,6 +240,7 @@
             </div>
         </div>
     </div>
+
     <script src="renderer.js"></script>
 </body>
 </html>

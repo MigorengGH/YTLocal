@@ -12,6 +12,7 @@
 
 ## ✨ Features
 - 🎬 **Video & Audio** — Download up to 4K video or extract high-quality MP3/WAV/M4A.
+- 🗂️ **Batch Playlists** — Download entire YouTube playlists with a single click, or select specific videos.
 - 🔄 **Always Up to Date** — One-click in-app updater for `yt-dlp` ensures downloads never break.
 - ⚡ **Zero Setup** — Bundled with everything you need (FFmpeg, yt-dlp). No Python required.
 - 🌑 **Sleek UI** — Glassmorphic dark mode with live progress bars.

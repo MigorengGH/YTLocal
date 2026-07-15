@@ -16,6 +16,10 @@
     padding: 0;
 }
 
+.hidden {
+    display: none !important;
+}
+
 body {
     font-family: var(--font-family);
     background-color: var(--bg-color);
@@ -133,13 +137,19 @@ body {
     background: rgba(255, 0, 0, 0.1);
 }
 
+.platform-win32 #history-btn,
+.platform-linux #history-btn {
+    right: 175px !important;
+}
+
 
 .container {
     display: flex;
     flex-direction: column;
-    padding: 1.8rem 1.5rem 1.5rem 1.5rem; /* adjusted bottom padding */
+    padding: 1rem;
     justify-content: flex-start;
-    gap: 1rem;
+    gap: 0.6rem;
+    overflow: hidden;
 }
 
 @keyframes spin {
@@ -148,32 +158,32 @@ body {
 
 header {
     text-align: center;
-    margin-bottom: 0.3rem; /* reduced margin */
+    margin-bottom: 0.1rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 0.2rem;
+    gap: 0.1rem;
 }
 
 header p {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
 }
 
 .app-logo {
-    height: 64px;
+    height: 36px;
     object-fit: contain;
 }
 
 .content-wrapper {
     background: var(--card-bg);
-    border-radius: 14px;
-    padding: 1rem 1.1rem; /* reduced card padding */
+    border-radius: 12px;
+    padding: 0.7rem 0.8rem;
     border: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    gap: 0.85rem; /* reduced element gap */
+    gap: 0.6rem;
 }
 
 .input-group {
@@ -182,8 +192,8 @@ header p {
 
 #url-input {
     width: 100%;
-    padding: 0.75rem 0.95rem;
-    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     background-color: var(--input-bg);
@@ -219,11 +229,11 @@ header p {
     justify-content: center;
     align-items: center;
     gap: 6px;
-    padding: 0.55rem;
+    padding: 0.4rem;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
     transition: all 0.2s ease;
 }
@@ -237,11 +247,11 @@ header p {
 .options-section {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.3rem;
 }
 
 .options-section label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -291,14 +301,14 @@ header p {
     background: rgba(255, 255, 255, 0.015);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 0.55rem 0.65rem;
+    padding: 0.3rem 0.4rem;
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.2rem;
 }
 
 .options-card-title {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -316,18 +326,19 @@ header p {
 .checkbox-label {
     display: flex;
     align-items: center;
-    gap: 0.55rem;
-    font-size: 0.8rem;
+    gap: 0.4rem;
+    font-size: 0.75rem;
     color: var(--text-color);
     cursor: pointer;
     text-transform: none;
     letter-spacing: normal;
     font-weight: 500;
+    white-space: nowrap;
 }
 
 .checkbox-label input[type="checkbox"] {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     accent-color: var(--primary-color);
     cursor: pointer;
 }
@@ -349,8 +360,8 @@ header p {
 }
 
 .quality-btn {
-    padding: 0.55rem 0;
-    font-size: 0.8rem;
+    padding: 0.4rem 0;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--text-muted);
     background-color: var(--input-bg);
@@ -375,8 +386,8 @@ header p {
 
 .secondary-btn {
     width: 100%;
-    padding: 0.75rem 0.95rem;
-    font-size: 0.9rem;
+    padding: 0.5rem 0.7rem;
+    font-size: 0.8rem;
     font-weight: 500;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -418,8 +429,8 @@ select.secondary-btn {
 
 #download-btn {
     width: 100%;
-    padding: 0.85rem;
-    font-size: 1rem;
+    padding: 0.65rem;
+    font-size: 0.9rem;
     font-weight: 700;
     color: #ffffff;
     background-color: var(--primary-color);
@@ -486,9 +497,9 @@ select.secondary-btn {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(18, 18, 18, 0.95);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     z-index: 20000;
     display: flex;
     align-items: center;
@@ -504,7 +515,7 @@ select.secondary-btn {
 
 .settings-panel {
     width: 100%;
-    max-width: 280px;
+    max-width: 270px;
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 10px;
@@ -525,6 +536,231 @@ select.secondary-btn {
     justify-content: space-between;
     padding: 0.8rem 1rem;
     border-bottom: 1px solid var(--border-color);
+}
+
+/* Existing settings scrollbar */
+.settings-body::-webkit-scrollbar {
+    width: 6px;
+}
+.settings-body::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+}
+.settings-body::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* ── New UI Components ── */
+.preview-card {
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 6px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 2px;
+}
+
+.preview-thumb {
+    width: 80px;
+    height: 45px;
+    object-fit: cover;
+    border-radius: 4px;
+    background: #000;
+}
+
+.preview-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+.preview-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.preview-channel {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.preview-duration {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-family: monospace;
+}
+
+.playlist-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 8px;
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 130px;
+    backdrop-filter: blur(10px);
+}
+
+.playlist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 6px;
+    font-weight: 500;
+    width: 100%;
+}
+
+.playlist-count-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.playlist-items {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-right: 4px;
+}
+
+.playlist-items::-webkit-scrollbar {
+    width: 6px;
+}
+.playlist-items::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+}
+
+.playlist-item {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 0.75rem;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+}
+
+.playlist-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.playlist-item-title {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-color);
+}
+
+.playlist-item-duration {
+    color: var(--text-muted);
+    font-family: monospace;
+    font-size: 0.7rem;
+}
+
+.time-input {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    color: #fff;
+    border-radius: 6px;
+    padding: 0.6rem;
+    font-size: 0.85rem;
+    outline: none;
+    flex: 1;
+    min-width: 0;
+    transition: border-color 0.2s ease;
+}
+
+.time-input:focus {
+    border-color: var(--primary-color);
+}
+
+.clipboard-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary-color);
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    z-index: 10000;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.clipboard-toast.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 20px);
+}
+
+.toast-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.toast-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.history-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+}
+
+.history-item:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.history-item-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.history-item-url {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .settings-header h3 {
@@ -553,10 +789,11 @@ select.secondary-btn {
 }
 
 .settings-body {
-    padding: 0.75rem;
+    padding: 0.4rem;
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.35rem;
+    overflow: hidden;
 }
 
 .settings-divider {
@@ -597,23 +834,23 @@ select.secondary-btn {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.3rem;
-    padding: 0.2rem 0 0.4rem;
+    gap: 0.15rem;
+    padding: 0.1rem 0 0.25rem;
 }
 
 .settings-logo {
-    height: 36px;
+    height: 24px;
     object-fit: contain;
 }
 
 .settings-app-name {
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 700;
     color: #ffffff;
 }
 
 .settings-app-version {
-    font-size: 0.72rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
 }
 
@@ -622,8 +859,8 @@ select.secondary-btn {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    font-size: 0.72rem;
-    margin-top: 0.35rem;
+    font-size: 0.65rem;
+    margin-top: 0.2rem;
 }
 
 .credit-author {
@@ -646,16 +883,9 @@ select.secondary-btn {
 }
 
 .settings-tip-note {
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
-    margin-top: 0.2rem;
-    line-height: 1.3;
+    margin-top: 0.1rem;
+    line-height: 1.25;
     opacity: 0.8;
-}
-
-.settings-panel .options-card {
-    padding: 0.45rem 0.55rem;
-    gap: 0.3rem;
-}
-
 

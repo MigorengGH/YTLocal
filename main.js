@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, nativeImage, shell } = require('ele
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-const { spawn, execFileSync, exec } = require('child_process');
+const { spawn, execFileSync, exec, execFile } = require('child_process');
 const ffmpegStaticPath = require('ffmpeg-static');
 
 // Resolve yt-dlp binary:
@@ -108,7 +108,7 @@ ipcMain.handle('select-folder', async () => {
     return null;
 });
 
-ipcMain.handle('start-download', async (event, { url, format, quality, folder, cookies, embedThumbnail, embedMetadata }) => {
+ipcMain.handle('start-download', async (event, { urls, format, quality, folder, cookies, embedThumbnail, embedMetadata, writeSubs, subLangs, speedLimit }) => {
     const downloadsFolder = folder || path.join(os.homedir(), 'Downloads');
     const ytDlpPath = getYtDlpPath();
     const ffmpegPath = getFfmpegPath();
@@ -117,6 +117,7 @@ ipcMain.handle('start-download', async (event, { url, format, quality, folder, c
     const args = [
         '--no-check-certificates',
         '--no-warnings',
+        '--extractor-args', 'generic:impersonate',
         '--js-runtimes', `node:${process.execPath}`,
         '--ffmpeg-location', ffmpegDir,
         '-o', path.join(downloadsFolder, '%(title)s.%(ext)s'),
@@ -128,6 +129,16 @@ ipcMain.handle('start-download', async (event, { url, format, quality, folder, c
 
     if (cookies && cookies !== 'none') {
         args.push('--cookies-from-browser', cookies);
+    }
+
+
+    if (writeSubs) {
+        args.push('--write-subs');
+        if (subLangs) args.push('--sub-langs', subLangs);
+    }
+
+    if (speedLimit && speedLimit !== 'unlimited') {
+        args.push('--limit-rate', speedLimit);
     }
 
     if (format === 'audio') {
@@ -148,7 +159,7 @@ ipcMain.handle('start-download', async (event, { url, format, quality, folder, c
         args.push('--merge-output-format', 'mp4');
     }
 
-    args.push(url);
+    args.push(...urls);
 
     let stderrOutput = '';
 
@@ -241,10 +252,12 @@ ipcMain.on('resize-window', (event, height) => {
         if (lockedContentWidth === null) {
             lockedContentWidth = currentWidth;
         }
-        // Avoid sub-pixel jitter feedback loops by checking if difference > 1
-        if (Math.abs(currentHeight - height) > 1) {
-            // Disable animation on Windows/Linux (macOS only) to prevent resize cascades
-            mainWindow.setContentSize(lockedContentWidth, height, process.platform === 'darwin');
+        
+        let targetHeight = height;
+        if (targetHeight > 750) targetHeight = 750;
+
+        if (Math.abs(currentHeight - targetHeight) > 1) {
+            mainWindow.setContentSize(lockedContentWidth, targetHeight, process.platform === 'darwin');
         }
     }
 });
@@ -276,4 +289,57 @@ ipcMain.handle('update-app', () => {
     setTimeout(() => {
         app.quit();
     }, 500);
+});
+
+ipcMain.handle('get-video-info', async (event, url) => {
+    const ytDlpPath = getYtDlpPath();
+    const isPlaylist = url.includes('list=');
+    const args = ['--dump-json', '--no-warnings', '--extractor-args', 'generic:impersonate'];
+    if (isPlaylist) {
+        args.push('--flat-playlist');
+    } else {
+        args.push('--no-playlist');
+    }
+    args.push(url);
+
+    return new Promise((resolve) => {
+        execFile(ytDlpPath, args, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+            if (error) {
+                resolve({ success: false, error: stderr || error.message });
+                return;
+            }
+            try {
+                const lines = stdout.trim().split('\n').filter(l => l.length > 0);
+                if (isPlaylist && lines.length > 1) {
+                    const items = lines.map(line => JSON.parse(line));
+                    resolve({ success: true, isPlaylist: true, items });
+                } else if (lines.length > 0) {
+                    const info = JSON.parse(lines[0]);
+                    resolve({ success: true, isPlaylist: false, info });
+                } else {
+                    resolve({ success: false, error: 'Empty response' });
+                }
+            } catch (e) {
+                resolve({ success: false, error: 'Failed to parse video info: ' + e.message });
+            }
+        });
+    });
+});
+
+
+
+ipcMain.handle('open-file', (event, filePath) => {
+    if (fs.existsSync(filePath)) {
+        shell.openPath(filePath);
+        return true;
+    }
+    return false;
+});
+
+ipcMain.handle('show-in-folder', (event, filePath) => {
+    if (fs.existsSync(filePath)) {
+        shell.showItemInFolder(filePath);
+        return true;
+    }
+    return false;
 });
