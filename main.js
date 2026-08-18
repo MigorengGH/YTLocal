@@ -56,14 +56,16 @@ let currentDownloadProcess = null;
 let currentDownloadFiles = [];
 let lockedContentWidth = null;
 function createWindow() {
-    lockedContentWidth = null;
+    lockedContentWidth = 380;
     const isMac = process.platform === 'darwin';
     mainWindow = new BrowserWindow({
         width: 380,
-        height: 640,
-        minWidth: 340,
-        minHeight: 520,
-        resizable: true,
+        height: 480,
+        minWidth: 380,
+        maxWidth: 380,
+        minHeight: 320,
+        maxHeight: 900,
+        resizable: false,
         frame: isMac,
         titleBarStyle: isMac ? 'hidden' : 'default',
         icon: path.join(__dirname, 'YTlocal.png'),
@@ -449,8 +451,8 @@ ipcMain.handle('start-download', async (event, { urls, format, quality, folder, 
     const args = [
         '--no-check-certificates',
         '--no-warnings',
+        '--extractor-args', 'youtube:player_client=android',
         '--extractor-args', 'tiktok:api_hostname=api16-normal-c-useast1a.tiktokv.com',
-        '--js-runtimes', `node:${process.execPath}`,
         '--ffmpeg-location', ffmpegDir,
         '-o', path.join(downloadsFolder, '%(title).80s [%(id)s].%(ext)s'),
         '--newline',
@@ -593,16 +595,10 @@ ipcMain.handle('cancel-download', () => {
 
 ipcMain.on('resize-window', (event, height) => {
     if (mainWindow && !mainWindow.isDestroyed()) {
-        const [currentWidth, currentHeight] = mainWindow.getContentSize();
-        if (lockedContentWidth === null) {
-            lockedContentWidth = currentWidth;
-        }
-        
-        let targetHeight = height;
-        if (targetHeight > 750) targetHeight = 750;
-
+        const [, currentHeight] = mainWindow.getContentSize();
+        const targetHeight = Math.max(340, Math.min(900, Math.round(height)));
         if (Math.abs(currentHeight - targetHeight) > 1) {
-            mainWindow.setContentSize(lockedContentWidth, targetHeight, process.platform === 'darwin');
+            mainWindow.setContentSize(380, targetHeight, false);
         }
     }
 });
@@ -716,7 +712,7 @@ ipcMain.handle('get-video-info', async (event, input) => {
         '--dump-json',
         '--no-warnings',
         '--no-check-certificates',
-        '--js-runtimes', `node:${process.execPath}`,
+        '--extractor-args', 'youtube:player_client=android',
         '--extractor-args', 'tiktok:api_hostname=api16-normal-c-useast1a.tiktokv.com',
     ];
 

@@ -533,18 +533,24 @@ if (updateBtn) {
     });
 }
 
-// Auto-resize
+// Auto-resize window to fit content perfectly without dead empty space
+function updateWindowHeight() {
+    const container = document.querySelector('.container');
+    if (!container) return;
+    const titlebar = document.querySelector('.titlebar');
+    const titlebarHeight = titlebar ? (titlebar.offsetHeight || 38) : 38;
+    const height = Math.ceil(container.scrollHeight + titlebarHeight + 10);
+    ipcRenderer.send('resize-window', height);
+}
+
 const container = document.querySelector('.container');
 if (container) {
-    let lastHeight = 0;
     new ResizeObserver(() => {
-        const height = container.scrollHeight;
-        if (height !== lastHeight) {
-            lastHeight = height;
-            ipcRenderer.send('resize-window', height);
-        }
+        updateWindowHeight();
     }).observe(container);
 }
+window.addEventListener('DOMContentLoaded', updateWindowHeight);
+window.addEventListener('load', updateWindowHeight);
 
 const cookiesSelectEl = document.getElementById('cookies-select');
 if (cookiesSelectEl) {
