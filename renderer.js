@@ -101,9 +101,24 @@ function isTikTokStory(url) {
     return /tiktok\.com\/(?:@[\w.-]+\/)?story\//i.test(url);
 }
 
+function cleanMediaUrl(rawUrl) {
+    if (!rawUrl || typeof rawUrl !== 'string') return rawUrl;
+    let urlStr = rawUrl.trim();
+    try {
+        const u = new URL(urlStr);
+        if (/(?:tiktok\.com|vt\.tiktok\.com|vm\.tiktok\.com)/i.test(u.hostname)) {
+            u.search = '';
+            u.hash = '';
+            return u.toString();
+        }
+    } catch (_) {}
+    return urlStr;
+}
+
 urlInput.addEventListener('input', () => {
     clearTimeout(fetchTimer);
-    const url = urlInput.value.trim();
+    const rawUrl = urlInput.value.trim();
+    const url = cleanMediaUrl(rawUrl);
     currentFetchUrl = url;
     const previewContainer = document.getElementById('video-preview-container');
     const playlistContainer = document.getElementById('playlist-container');

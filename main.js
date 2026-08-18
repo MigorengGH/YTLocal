@@ -108,6 +108,21 @@ ipcMain.handle('select-folder', async () => {
     return null;
 });
 
+// Clean and normalize URLs (e.g. stripping tracking/hydration parameters from TikTok)
+function cleanMediaUrl(rawUrl) {
+    if (!rawUrl || typeof rawUrl !== 'string') return rawUrl;
+    let urlStr = rawUrl.trim();
+    try {
+        const u = new URL(urlStr);
+        if (/(?:tiktok\.com|vt\.tiktok\.com|vm\.tiktok\.com)/i.test(u.hostname)) {
+            u.search = '';
+            u.hash = '';
+            return u.toString();
+        }
+    } catch (_) {}
+    return urlStr;
+}
+
 ipcMain.handle('start-download', async (event, { urls, format, quality, folder, cookies, embedThumbnail, embedMetadata, writeSubs, subLangs, speedLimit }) => {
     const downloadsFolder = folder || path.join(os.homedir(), 'Downloads');
     const ytDlpPath = getYtDlpPath();
@@ -117,7 +132,6 @@ ipcMain.handle('start-download', async (event, { urls, format, quality, folder, 
     const args = [
         '--no-check-certificates',
         '--no-warnings',
-        '--extractor-args', 'generic:impersonate',
         '--js-runtimes', `node:${process.execPath}`,
         '--ffmpeg-location', ffmpegDir,
         '-o', path.join(downloadsFolder, '%(title,id)s.%(ext)s'),
@@ -159,7 +173,8 @@ ipcMain.handle('start-download', async (event, { urls, format, quality, folder, 
         args.push('--merge-output-format', 'mp4');
     }
 
-    args.push(...urls);
+    const cleanedUrls = (urls || []).map(cleanMediaUrl);
+    args.push(...cleanedUrls);
 
     let stderrOutput = '';
 
@@ -292,17 +307,17 @@ ipcMain.handle('update-app', () => {
 });
 
 ipcMain.handle('get-video-info', async (event, input) => {
-    const url = typeof input === 'string' ? input : (input?.url || '');
+    const rawUrl = typeof input === 'string' ? input : (input?.url || '');
     const cookies = typeof input === 'object' ? input?.cookies : null;
-    if (!url) return { success: false, error: 'No URL provided' };
+    if (!rawUrl) return { success: false, error: 'No URL provided' };
 
+    const url = cleanMediaUrl(rawUrl);
     const ytDlpPath = getYtDlpPath();
     const isPlaylist = url.includes('list=') || url.includes('/playlist') || url.includes('/sets/');
     const args = [
         '--dump-json',
         '--no-warnings',
         '--no-check-certificates',
-        '--extractor-args', 'generic:impersonate',
     ];
 
     if (cookies && cookies !== 'none') {

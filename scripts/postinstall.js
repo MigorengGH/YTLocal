@@ -15,11 +15,11 @@ if (!fs.existsSync(destDir)) {
 const downloads = [];
 
 if (process.platform !== 'win32') {
-    // macOS/Linux: download yt-dlp_macos (self-contained, no Python required)
+    // macOS/Linux: download universal yt-dlp binary (full Python compatibility)
     downloads.push({
-        url: 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos',
+        url: 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp',
         dest: path.join(destDir, 'yt-dlp'),
-        label: 'yt-dlp (macOS self-contained)'
+        label: 'yt-dlp (universal)'
     });
 }
 
