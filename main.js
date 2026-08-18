@@ -527,7 +527,7 @@ function runSpawnedDownload(args) {
         let stderrOutput = '';
         currentDownloadFiles = [];
         const proc = spawn(ytDlpPath, args, {
-            env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
+            env: process.env
         });
         currentDownloadProcess = proc;
 
