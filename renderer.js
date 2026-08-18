@@ -13,6 +13,7 @@ const urlInput = document.getElementById('url-input');
 const pasteBtn = document.getElementById('paste-btn');
 const formatVideo = document.getElementById('format-video');
 const formatAudio = document.getElementById('format-audio');
+const formatImage = document.getElementById('format-image');
 const qualityButtonsContainer = document.getElementById('quality-buttons');
 const folderBtn = document.getElementById('folder-btn');
 const folderPathDisplay = document.getElementById('folder-path');
@@ -43,9 +44,18 @@ const audioOptions = [
     { value: 'wav', label: 'WAV' }
 ];
 
-function populateQualityButtons(isAudio) {
+const imageOptions = [
+    { value: 'best', label: 'HD / Original' },
+    { value: 'jpg', label: 'JPG' },
+    { value: 'png', label: 'PNG' },
+    { value: 'webp', label: 'WEBP' }
+];
+
+function populateQualityButtons(mode) {
     qualityButtonsContainer.innerHTML = '';
-    const options = isAudio ? audioOptions : videoOptions;
+    let options = videoOptions;
+    if (mode === 'audio') options = audioOptions;
+    else if (mode === 'image') options = imageOptions;
     
     if (!options.find(o => o.value === currentQuality)) {
         currentQuality = options[0].value;
@@ -65,9 +75,10 @@ function populateQualityButtons(isAudio) {
     });
 }
 
-populateQualityButtons(false);
-formatVideo.addEventListener('change', () => populateQualityButtons(false));
-formatAudio.addEventListener('change', () => populateQualityButtons(true));
+populateQualityButtons('video');
+formatVideo.addEventListener('change', () => populateQualityButtons('video'));
+formatAudio.addEventListener('change', () => populateQualityButtons('audio'));
+if (formatImage) formatImage.addEventListener('change', () => populateQualityButtons('image'));
 
 folderBtn.addEventListener('click', async () => {
     const path = await ipcRenderer.invoke('select-folder');
@@ -99,6 +110,10 @@ function isTikTokUrl(url) {
 
 function isTikTokStory(url) {
     return /tiktok\.com\/(?:@[\w.-]+\/)?story\//i.test(url);
+}
+
+function isTikTokPhoto(url) {
+    return /tiktok\.com\/(?:@[\w.-]+\/)?photo\//i.test(url);
 }
 
 function cleanMediaUrl(rawUrl) {
@@ -134,7 +149,13 @@ urlInput.addEventListener('input', () => {
     // Set immediate loading states
     const isPlaylist = url.includes('list=') || url.includes('/playlist') || url.includes('/sets/');
     const isStory = isTikTokStory(url);
+    const isPhoto = isTikTokPhoto(url) || /\.(jpe?g|png|webp|gif|svg)(\?.*)?$/i.test(url);
     const isTikTok = isTikTokUrl(url);
+
+    if (isPhoto && formatImage) {
+        formatImage.checked = true;
+        populateQualityButtons('image');
+    }
 
     if (isPlaylist) {
         playlistContainer.classList.remove('hidden');
@@ -302,7 +323,10 @@ downloadBtn.addEventListener('click', async () => {
     
     if (urls.length === 0) return;
 
-    const format = formatVideo.checked ? 'video' : 'audio';
+    let format = 'video';
+    if (formatAudio && formatAudio.checked) format = 'audio';
+    else if (formatImage && formatImage.checked) format = 'image';
+
     const cookiesSelect = document.getElementById('cookies-select');
     const cookies = cookiesSelect ? cookiesSelect.value : 'none';
 

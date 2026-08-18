@@ -131,6 +131,72 @@ function isTikTokUrl(url) {
     return /(?:tiktok\.com|vt\.tiktok\.com|vm\.tiktok\.com)/i.test(url);
 }
 
+// Image downloader helper with optional ffmpeg format conversion
+async function downloadImageDirect(imageUrl, destPath, targetExt, onProgress) {
+    return new Promise((resolve, reject) => {
+        function fetchAndSave(u) {
+            const client = u.startsWith('https') ? https : http;
+            const req = client.get(u, (res) => {
+                if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                    return fetchAndSave(res.headers.location);
+                }
+                if (res.statusCode !== 200) {
+                    return reject(new Error(`HTTP ${res.statusCode} when downloading image`));
+                }
+
+                const totalBytes = parseInt(res.headers['content-length'], 10) || 0;
+                let downloaded = 0;
+
+                const desiredExt = (targetExt && targetExt !== 'best') ? `.${targetExt}` : path.extname(destPath) || '.jpg';
+                const finalPath = destPath.replace(/\.[^/.]+$/, "") + desiredExt;
+
+                currentDownloadFiles.push(finalPath);
+
+                const needsConvert = targetExt && targetExt !== 'best' && !destPath.toLowerCase().endsWith(`.${targetExt}`);
+                const writeTarget = needsConvert ? `${finalPath}_tmp${path.extname(destPath) || '.jpg'}` : finalPath;
+                if (needsConvert) currentDownloadFiles.push(writeTarget);
+
+                const ws = fs.createWriteStream(writeTarget);
+
+                res.on('data', (chunk) => {
+                    downloaded += chunk.length;
+                    if (totalBytes > 0 && onProgress) {
+                        onProgress((downloaded / totalBytes) * 100);
+                    }
+                });
+
+                res.pipe(ws);
+
+                ws.on('finish', () => {
+                    ws.close();
+                    if (needsConvert) {
+                        const ffmpegPath = getFfmpegPath();
+                        execFile(ffmpegPath, ['-y', '-i', writeTarget, finalPath], (err) => {
+                            try { fs.unlinkSync(writeTarget); } catch (_) {}
+                            if (err) {
+                                resolve({ success: true, file: writeTarget });
+                            } else {
+                                resolve({ success: true, file: finalPath });
+                            }
+                        });
+                    } else {
+                        resolve({ success: true, file: finalPath });
+                    }
+                });
+            });
+
+            req.on('error', (err) => {
+                if (fs.existsSync(destPath)) {
+                    try { fs.unlinkSync(destPath); } catch (_) {}
+                }
+                reject(err);
+            });
+        }
+
+        fetchAndSave(imageUrl);
+    });
+}
+
 // Direct TikTok & Story downloader (watermark-free, fast, bypasses web anti-bot)
 async function downloadTikTokDirect(rawUrl, format, quality, folder, onProgress, onLog) {
     const cleanUrl = cleanMediaUrl(rawUrl);
@@ -151,12 +217,42 @@ async function downloadTikTokDirect(rawUrl, format, quality, folder, onProgress,
     }
 
     const data = response.data;
+    const isPhotoPost = cleanUrl.includes('/photo/') || (data.images && Array.isArray(data.images) && data.images.length > 0);
     const isAudio = format === 'audio';
+    const isImage = format === 'image' || isPhotoPost;
+
+    const rawTitle = data.title || (cleanUrl.includes('/story/') ? 'TikTok_Story' : (isPhotoPost ? 'TikTok_Photos' : `tiktok_${data.id || Date.now()}`));
+    const sanitizedTitle = rawTitle.replace(/[\\/:*?"<>|]/g, '').slice(0, 80).trim() || `tiktok_${data.id}`;
+
+    // Handle Image / Photo Slideshow mode
+    if (isImage) {
+        const images = data.images;
+        if (images && Array.isArray(images) && images.length > 0) {
+            const subfolder = path.join(folder, `${sanitizedTitle} [${data.id || Date.now()}]`);
+            if (!fs.existsSync(subfolder)) fs.mkdirSync(subfolder, { recursive: true });
+            
+            for (let i = 0; i < images.length; i++) {
+                const imgExt = (quality && quality !== 'best') ? quality : 'jpg';
+                const imgPath = path.join(subfolder, `photo_${i + 1}.${imgExt}`);
+                if (onLog) onLog(`[${i + 1}/${images.length}] Destination: ${imgPath}`);
+                await downloadImageDirect(images[i], imgPath, quality, (p) => {
+                    const totalP = ((i + (p / 100)) / images.length) * 100;
+                    if (onProgress) onProgress(totalP);
+                });
+            }
+            return { success: true, folder: subfolder };
+        } else {
+            const coverUrl = data.origin_cover || data.cover || data.ai_dynamic_cover;
+            if (!coverUrl) throw new Error('No image found for this TikTok post');
+            const imgExt = (quality && quality !== 'best') ? quality : 'jpg';
+            const imgPath = path.join(folder, `${sanitizedTitle} [${data.id || Date.now()}].${imgExt}`);
+            if (onLog) onLog(`Destination: ${imgPath}`);
+            return await downloadImageDirect(coverUrl, imgPath, quality, onProgress);
+        }
+    }
+
     const mediaUrl = isAudio ? (data.music || data.play) : (data.play || data.wmplay);
     const ext = isAudio ? 'mp3' : 'mp4';
-    
-    const rawTitle = data.title || (cleanUrl.includes('/story/') ? 'TikTok_Story' : `tiktok_${data.id || Date.now()}`);
-    const sanitizedTitle = rawTitle.replace(/[\\/:*?"<>|]/g, '').slice(0, 80).trim() || `tiktok_${data.id}`;
     const filename = `${sanitizedTitle} [${data.id || Date.now()}].${ext}`;
     const destPath = path.join(folder, filename);
     
@@ -248,6 +344,53 @@ ipcMain.handle('start-download', async (event, { urls, format, quality, folder, 
         }
     }
 
+    // Direct Image Download (YouTube Thumbnails or Direct Images)
+    if (format === 'image' && urls && urls.length === 1) {
+        const rawUrl = urls[0];
+        const cleanUrl = cleanMediaUrl(rawUrl);
+
+        // Check if YouTube URL to download maxres thumbnail
+        const ytMatch = cleanUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+        if (ytMatch) {
+            const videoId = ytMatch[1];
+            const imgExt = (quality && quality !== 'best') ? quality : 'jpg';
+            const destPath = path.join(downloadsFolder, `youtube_${videoId}.${imgExt}`);
+            try {
+                if (mainWindow && !mainWindow.isDestroyed()) {
+                    mainWindow.webContents.send('download-log', `Destination: ${destPath}`);
+                }
+                await downloadImageDirect(`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`, destPath, quality, (pct) => {
+                    if (mainWindow && !mainWindow.isDestroyed()) {
+                        mainWindow.webContents.send('download-progress', pct);
+                    }
+                });
+                return { success: true };
+            } catch (ytImgErr) {
+                try {
+                    await downloadImageDirect(`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`, destPath, quality);
+                    return { success: true };
+                } catch (_) {}
+            }
+        }
+
+        // Check if direct image URL (.jpg, .jpeg, .png, .webp, .gif)
+        if (/\.(jpe?g|png|webp|gif|svg)(\?.*)?$/i.test(cleanUrl)) {
+            const urlPath = new URL(cleanUrl).pathname;
+            const baseName = path.basename(urlPath) || `image_${Date.now()}.jpg`;
+            const destPath = path.join(downloadsFolder, baseName);
+            try {
+                await downloadImageDirect(cleanUrl, destPath, quality, (pct) => {
+                    if (mainWindow && !mainWindow.isDestroyed()) {
+                        mainWindow.webContents.send('download-progress', pct);
+                    }
+                });
+                return { success: true };
+            } catch (e) {
+                console.warn('Direct image download failed, trying yt-dlp:', e.message);
+            }
+        }
+    }
+
     const ytDlpPath = getYtDlpPath();
     const ffmpegPath = getFfmpegPath();
     const ffmpegDir = path.dirname(ffmpegPath);
@@ -284,6 +427,10 @@ ipcMain.handle('start-download', async (event, { urls, format, quality, folder, 
         const fmt = (quality === 'mp3' || quality === 'm4a' || quality === 'wav') ? quality : 'mp3';
         args.push('--audio-format', fmt);
         args.push('--audio-quality', '0');
+    } else if (format === 'image') {
+        args.push('--write-thumbnail', '--skip-download');
+        const imgExt = (quality && quality !== 'best') ? quality : 'jpg';
+        args.push('--convert-thumbnails', imgExt);
     } else {
         const formatMap = {
             'best':  'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best[ext=mp4]/best',
