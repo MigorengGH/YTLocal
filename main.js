@@ -60,8 +60,10 @@ function createWindow() {
     const isMac = process.platform === 'darwin';
     mainWindow = new BrowserWindow({
         width: 380,
-        height: 620,
-        resizable: false,
+        height: 640,
+        minWidth: 340,
+        minHeight: 520,
+        resizable: true,
         frame: isMac,
         titleBarStyle: isMac ? 'hidden' : 'default',
         icon: path.join(__dirname, 'YTlocal.png'),
@@ -658,9 +660,10 @@ ipcMain.handle('get-video-info', async (event, input) => {
             if (apiRes && apiRes.code === 0 && apiRes.data) {
                 const d = apiRes.data;
                 const isStory = url.includes('/story/');
+                const isPhoto = url.includes('/photo/') || (d.images && Array.isArray(d.images) && d.images.length > 0);
                 const info = {
                     id: d.id,
-                    title: d.title || (isStory ? 'TikTok Story' : 'TikTok Video'),
+                    title: d.title || (isStory ? 'TikTok Story' : (isPhoto ? 'TikTok Photo Album' : 'TikTok Video')),
                     uploader: d.author ? `${d.author.nickname || ''} (@${d.author.unique_id || ''})`.trim() : 'TikTok',
                     uploader_id: d.author?.unique_id,
                     thumbnail: d.cover || d.origin_cover,
@@ -674,12 +677,46 @@ ipcMain.handle('get-video-info', async (event, input) => {
         }
     }
 
+    // Fast instant metadata lookup for YouTube single videos (< 100ms)
+    const ytMatch = !url.includes('list=') && url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
+    if (ytMatch) {
+        try {
+            const videoId = ytMatch[1];
+            const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
+            const oembedRes = await new Promise((resolve) => {
+                https.get(oembedUrl, (res) => {
+                    if (res.statusCode !== 200) return resolve(null);
+                    let data = '';
+                    res.on('data', c => data += c);
+                    res.on('end', () => {
+                        try { resolve(JSON.parse(data)); } catch (_) { resolve(null); }
+                    });
+                }).on('error', () => resolve(null));
+            });
+
+            if (oembedRes && oembedRes.title) {
+                const info = {
+                    id: videoId,
+                    title: oembedRes.title,
+                    uploader: oembedRes.author_name || 'YouTube',
+                    thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+                    duration: 0,
+                    url: url
+                };
+                return { success: true, isPlaylist: false, info };
+            }
+        } catch (e) {
+            console.warn('YouTube fast lookup failed, falling back to yt-dlp:', e.message);
+        }
+    }
+
     const ytDlpPath = getYtDlpPath();
     const isPlaylist = url.includes('list=') || url.includes('/playlist') || url.includes('/sets/');
     const args = [
         '--dump-json',
         '--no-warnings',
         '--no-check-certificates',
+        '--js-runtimes', `node:${process.execPath}`,
         '--extractor-args', 'tiktok:api_hostname=api16-normal-c-useast1a.tiktokv.com',
     ];
 
