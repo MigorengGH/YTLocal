@@ -128,18 +128,14 @@ body {
 
 .platform-win32 .settings-top-btn,
 .platform-linux .settings-top-btn {
-    right: 100px; /* displaced past close/minimize controls */
+    left: 12px;
+    right: auto;
 }
 
 .settings-top-btn:hover {
     color: #ffffff;
     border-color: var(--primary-color);
     background: rgba(255, 0, 0, 0.1);
-}
-
-.platform-win32 #history-btn,
-.platform-linux #history-btn {
-    right: 175px !important;
 }
 
 
