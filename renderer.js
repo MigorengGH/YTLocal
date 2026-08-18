@@ -89,6 +89,84 @@ folderBtn.addEventListener('click', async () => {
     }
 });
 
+// ── Trim Controls ──
+const trimToggleHeader = document.getElementById('trim-toggle-header');
+const trimBody = document.getElementById('trim-body');
+const trimIndicator = document.getElementById('trim-indicator');
+const trimStartInput = document.getElementById('trim-start');
+const trimEndInput = document.getElementById('trim-end');
+const trimClearBtn = document.getElementById('trim-clear-btn');
+
+function updateTrimState() {
+    const s = trimStartInput ? trimStartInput.value.trim() : '';
+    const e = trimEndInput ? trimEndInput.value.trim() : '';
+    if (s || e) {
+        if (trimIndicator) {
+            trimIndicator.innerText = `${s || '00:00'} → ${e || 'End'}`;
+            trimIndicator.classList.add('active');
+        }
+    } else {
+        if (trimIndicator) {
+            trimIndicator.innerText = 'Off';
+            trimIndicator.classList.remove('active');
+        }
+    }
+}
+
+if (trimToggleHeader) {
+    trimToggleHeader.addEventListener('click', () => {
+        if (trimBody) trimBody.classList.toggle('hidden');
+    });
+}
+if (trimStartInput) trimStartInput.addEventListener('input', updateTrimState);
+if (trimEndInput) trimEndInput.addEventListener('input', updateTrimState);
+if (trimClearBtn) {
+    trimClearBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (trimStartInput) trimStartInput.value = '';
+        if (trimEndInput) trimEndInput.value = '';
+        updateTrimState();
+    });
+}
+
+// ── Clipboard Auto-Detection ──
+const autoPasteCheckbox = document.getElementById('auto-paste-clipboard');
+let lastAutoPastedUrl = '';
+
+function showClipboardToast(msg) {
+    let toast = document.querySelector('.clipboard-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'clipboard-toast';
+        document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>${msg}</span>`;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+function checkClipboardForLinks() {
+    if (autoPasteCheckbox && !autoPasteCheckbox.checked) return;
+    try {
+        const text = clipboard.readText().trim();
+        if (!text || !isValidUrl(text)) return;
+        if (text === lastAutoPastedUrl || text === urlInput.value.trim()) return;
+
+        const isMediaLink = /(?:youtube\.com|youtu\.be|tiktok\.com|instagram\.com|instagr\.am|vimeo\.com|twitter\.com|x\.com)/i.test(text);
+        if (isMediaLink) {
+            lastAutoPastedUrl = text;
+            urlInput.value = text;
+            urlInput.dispatchEvent(new Event('input'));
+            showClipboardToast('Link detected from clipboard!');
+        }
+    } catch (_) {}
+}
+
+window.addEventListener('focus', checkClipboardForLinks);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') checkClipboardForLinks();
+});
+
 // ── Video Info / Playlist & Story preview ──
 let fetchTimer;
 let currentPlaylistItems = [];
@@ -116,12 +194,20 @@ function isTikTokPhoto(url) {
     return /tiktok\.com\/(?:@[\w.-]+\/)?photo\//i.test(url);
 }
 
+function isInstagramUrl(url) {
+    return /(?:instagram\.com|instagr\.am)/i.test(url);
+}
+
+function isInstagramStory(url) {
+    return /instagram\.com\/stories\//i.test(url);
+}
+
 function cleanMediaUrl(rawUrl) {
     if (!rawUrl || typeof rawUrl !== 'string') return rawUrl;
     let urlStr = rawUrl.trim();
     try {
         const u = new URL(urlStr);
-        if (/(?:tiktok\.com|vt\.tiktok\.com|vm\.tiktok\.com)/i.test(u.hostname)) {
+        if (/(?:tiktok\.com|vt\.tiktok\.com|vm\.tiktok\.com|instagram\.com|instagr\.am)/i.test(u.hostname)) {
             u.search = '';
             u.hash = '';
             return u.toString();
@@ -148,9 +234,10 @@ urlInput.addEventListener('input', () => {
     
     // Set immediate loading states
     const isPlaylist = url.includes('list=') || url.includes('/playlist') || url.includes('/sets/');
-    const isStory = isTikTokStory(url);
+    const isStory = isTikTokStory(url) || isInstagramStory(url);
     const isPhoto = isTikTokPhoto(url) || /\.(jpe?g|png|webp|gif|svg)(\?.*)?$/i.test(url);
     const isTikTok = isTikTokUrl(url);
+    const isInstagram = isInstagramUrl(url);
 
     if (isPhoto && formatImage) {
         formatImage.checked = true;
@@ -184,7 +271,7 @@ urlInput.addEventListener('input', () => {
         document.getElementById('preview-thumbnail').src = 'YTlocal.png';
         document.getElementById('preview-title').innerText = 'Loading playlist details...';
         document.getElementById('preview-channel').innerText = '';
-        document.getElementById('preview-duration').innerText = '';
+        document.getElementById('preview-duration').innerText = 'Playlist';
         
         downloadBtn.disabled = true;
         downloadBtn.innerText = 'Loading Playlist...';
@@ -193,12 +280,12 @@ urlInput.addEventListener('input', () => {
         previewContainer.classList.remove('hidden');
         
         document.getElementById('preview-thumbnail').src = 'YTlocal.png';
-        document.getElementById('preview-title').innerText = isStory ? 'Loading TikTok Story...' : (isTikTok ? 'Loading TikTok Video...' : 'Loading video details...');
+        document.getElementById('preview-title').innerText = 'Loading video info...';
         document.getElementById('preview-channel').innerText = '';
-        document.getElementById('preview-duration').innerText = isStory ? 'Story' : '';
+        document.getElementById('preview-duration').innerText = '--:--';
         
         downloadBtn.disabled = true;
-        downloadBtn.innerText = isStory ? 'Loading Story...' : (isTikTok ? 'Loading TikTok...' : 'Loading Video Info...');
+        downloadBtn.innerText = isStory ? 'Loading Story...' : (isInstagram ? 'Loading Instagram...' : (isTikTok ? 'Loading TikTok...' : 'Loading Video Info...'));
     }
     
     fetchTimer = setTimeout(async () => {
@@ -224,10 +311,10 @@ urlInput.addEventListener('input', () => {
                 previewContainer.classList.remove('hidden');
                 document.getElementById('preview-thumbnail').src = result.info.thumbnail || result.info.thumbnails?.[0]?.url || 'YTlocal.png';
                 
-                const defaultTitle = isStory ? 'TikTok Story' : (isTikTok ? 'TikTok Video' : 'Video');
+                const defaultTitle = isStory ? 'Story' : (isInstagram ? 'Instagram Reel/Post' : (isTikTok ? 'TikTok Video' : 'Video'));
                 document.getElementById('preview-title').innerText = result.info.title || result.info.description || defaultTitle;
                 
-                const channel = result.info.uploader || result.info.channel || result.info.creator || (result.info.uploader_id ? `@${result.info.uploader_id}` : (isTikTok ? 'TikTok' : 'Unknown Channel'));
+                const channel = result.info.uploader || result.info.channel || result.info.creator || (result.info.uploader_id ? `@${result.info.uploader_id}` : (isInstagram ? 'Instagram' : (isTikTok ? 'TikTok' : 'Unknown Channel')));
                 document.getElementById('preview-channel').innerText = channel;
                 
                 let dur = '';
@@ -235,6 +322,8 @@ urlInput.addEventListener('input', () => {
                     dur = new Date(result.info.duration * 1000).toISOString().substr(11, 8).replace(/^00:/, '');
                 } else if (isStory) {
                     dur = 'Story';
+                } else if (isPhoto) {
+                    dur = 'Photos';
                 }
                 document.getElementById('preview-duration').innerText = dur;
             }
@@ -349,10 +438,13 @@ downloadBtn.addEventListener('click', async () => {
     const writeSubs = document.getElementById('write-subs')?.checked || false;
     const subLangs = document.getElementById('sub-langs')?.value || '';
     const speedLimit = document.getElementById('speed-limit')?.value || 'unlimited';
+    const startTime = trimStartInput ? trimStartInput.value.trim() : '';
+    const endTime = trimEndInput ? trimEndInput.value.trim() : '';
 
     const result = await ipcRenderer.invoke('start-download', { 
         urls, format, quality: currentQuality, folder: selectedFolder, cookies,
-        embedThumbnail, embedMetadata, writeSubs, subLangs, speedLimit
+        embedThumbnail, embedMetadata, writeSubs, subLangs, speedLimit,
+        startTime, endTime
     });
 
     if (result.success) {

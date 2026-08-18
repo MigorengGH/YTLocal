@@ -111,13 +111,13 @@ ipcMain.handle('select-folder', async () => {
 const https = require('https');
 const http = require('http');
 
-// Clean and normalize URLs (e.g. stripping tracking/hydration parameters from TikTok)
+// Clean and normalize URLs (e.g. stripping tracking/hydration parameters from TikTok/Instagram)
 function cleanMediaUrl(rawUrl) {
     if (!rawUrl || typeof rawUrl !== 'string') return rawUrl;
     let urlStr = rawUrl.trim();
     try {
         const u = new URL(urlStr);
-        if (/(?:tiktok\.com|vt\.tiktok\.com|vm\.tiktok\.com)/i.test(u.hostname)) {
+        if (/(?:tiktok\.com|vt\.tiktok\.com|vm\.tiktok\.com|instagram\.com|instagr\.am)/i.test(u.hostname)) {
             u.search = '';
             u.hash = '';
             return u.toString();
@@ -126,9 +126,34 @@ function cleanMediaUrl(rawUrl) {
     return urlStr;
 }
 
+function formatTimeSlice(timeStr) {
+    if (!timeStr || typeof timeStr !== 'string') return null;
+    const s = timeStr.trim();
+    if (!s) return null;
+    const parts = s.split(':').map(p => p.trim());
+    if (parts.length === 1) {
+        const secs = parseInt(parts[0], 10);
+        if (isNaN(secs)) return null;
+        const h = Math.floor(secs / 3600);
+        const m = Math.floor((secs % 3600) / 60);
+        const sc = secs % 60;
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sc).padStart(2, '0')}`;
+    } else if (parts.length === 2) {
+        return `00:${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+    } else if (parts.length === 3) {
+        return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}:${parts[2].padStart(2, '0')}`;
+    }
+    return s;
+}
+
 function isTikTokUrl(url) {
     if (!url || typeof url !== 'string') return false;
     return /(?:tiktok\.com|vt\.tiktok\.com|vm\.tiktok\.com)/i.test(url);
+}
+
+function isInstagramUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    return /(?:instagram\.com|instagr\.am)/i.test(url);
 }
 
 // Image downloader helper with optional ffmpeg format conversion
@@ -315,7 +340,7 @@ async function downloadTikTokDirect(rawUrl, format, quality, folder, onProgress,
     });
 }
 
-ipcMain.handle('start-download', async (event, { urls, format, quality, folder, cookies, embedThumbnail, embedMetadata, writeSubs, subLangs, speedLimit }) => {
+ipcMain.handle('start-download', async (event, { urls, format, quality, folder, cookies, embedThumbnail, embedMetadata, writeSubs, subLangs, speedLimit, startTime, endTime }) => {
     const downloadsFolder = folder || path.join(os.homedir(), 'Downloads');
 
     // If downloading a single TikTok URL, try direct high-speed download first
@@ -338,6 +363,30 @@ ipcMain.handle('start-download', async (event, { urls, format, quality, folder, 
                     }
                 }
             );
+
+            // If trimming requested on direct TikTok video/audio download
+            if ((startTime || endTime) && res?.file && fs.existsSync(res.file)) {
+                const s = formatTimeSlice(startTime) || '00:00:00';
+                const e = formatTimeSlice(endTime);
+                const trimmedDest = res.file.replace(/\.([^/.]+)$/, '_trimmed.$1');
+                const ffmpegPath = getFfmpegPath();
+                const trimArgs = ['-y', '-ss', s];
+                if (e) trimArgs.push('-to', e);
+                trimArgs.push('-i', res.file, '-c', 'copy', trimmedDest);
+
+                await new Promise((resolveTrim) => {
+                    execFile(ffmpegPath, trimArgs, (trimErr) => {
+                        if (!trimErr && fs.existsSync(trimmedDest)) {
+                            try {
+                                fs.unlinkSync(res.file);
+                                fs.renameSync(trimmedDest, res.file);
+                            } catch (_) {}
+                        }
+                        resolveTrim();
+                    });
+                });
+            }
+
             return { success: true };
         } catch (directErr) {
             console.warn('Direct TikTok download failed, falling back to yt-dlp:', directErr.message);
@@ -405,13 +454,21 @@ ipcMain.handle('start-download', async (event, { urls, format, quality, folder, 
         '--newline',
     ];
 
+    // Add time trimming section if specified
+    const startFormatted = formatTimeSlice(startTime);
+    const endFormatted = formatTimeSlice(endTime);
+    if (startFormatted || endFormatted) {
+        const sliceStr = `*${startFormatted || '00:00:00'}-${endFormatted || 'inf'}`;
+        args.push('--download-sections', sliceStr);
+        args.push('--force-keyframes-at-cuts');
+    }
+
     if (embedThumbnail) args.push('--embed-thumbnail');
     if (embedMetadata) args.push('--embed-metadata');
 
     if (cookies && cookies !== 'none') {
         args.push('--cookies-from-browser', cookies);
     }
-
 
     if (writeSubs) {
         args.push('--write-subs');

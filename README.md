@@ -11,12 +11,15 @@
 ---
 
 ## ✨ Features
-- 🎬 **Video & Audio** — Download up to 4K video or extract high-quality MP3/WAV/M4A.
-- 📱 **TikTok & Stories** — Full support for downloading TikTok stories, videos, and photos with metadata.
+- 🎬 **Video, Audio & Image** — Download up to 4K video, high-quality audio (MP3/WAV/M4A), or full-resolution images/thumbnails.
+- 📱 **TikTok & Stories** — Watermark-free downloads for TikTok stories, videos, and photo slideshow albums.
+- 📸 **Instagram Reels & Stories** — Fast downloads for Instagram reels, posts, carousels, and stories.
+- ✂️ **Clip Trimmer** — Download exact video or audio segments with custom Start and End times.
+- 📋 **Clipboard Auto-Detection** — Automatically detects copied media links when focusing the app.
 - 🗂️ **Batch Playlists** — Download entire YouTube playlists with a single click, or select specific videos.
 - 🔄 **Always Up to Date** — One-click in-app updater for `yt-dlp` ensures downloads never break.
 - ⚡ **Zero Setup** — Bundled with everything you need (FFmpeg, yt-dlp). No Python required.
-- 🌑 **Sleek UI** — Glassmorphic dark mode with live progress bars.
+- 🌑 **Sleek UI** — Glassmorphic dark mode with live progress and speed tracking.
 
 ---
 
