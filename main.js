@@ -108,6 +108,9 @@ ipcMain.handle('select-folder', async () => {
     return null;
 });
 
+const https = require('https');
+const http = require('http');
+
 // Clean and normalize URLs (e.g. stripping tracking/hydration parameters from TikTok)
 function cleanMediaUrl(rawUrl) {
     if (!rawUrl || typeof rawUrl !== 'string') return rawUrl;
@@ -123,8 +126,128 @@ function cleanMediaUrl(rawUrl) {
     return urlStr;
 }
 
+function isTikTokUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    return /(?:tiktok\.com|vt\.tiktok\.com|vm\.tiktok\.com)/i.test(url);
+}
+
+// Direct TikTok & Story downloader (watermark-free, fast, bypasses web anti-bot)
+async function downloadTikTokDirect(rawUrl, format, quality, folder, onProgress, onLog) {
+    const cleanUrl = cleanMediaUrl(rawUrl);
+    const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(cleanUrl)}`;
+    
+    const response = await new Promise((resolve, reject) => {
+        https.get(apiUrl, (res) => {
+            let data = '';
+            res.on('data', c => data += c);
+            res.on('end', () => {
+                try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
+            });
+        }).on('error', reject);
+    });
+
+    if (!response || response.code !== 0 || !response.data) {
+        throw new Error(response?.msg || 'Failed to fetch TikTok stream');
+    }
+
+    const data = response.data;
+    const isAudio = format === 'audio';
+    const mediaUrl = isAudio ? (data.music || data.play) : (data.play || data.wmplay);
+    const ext = isAudio ? 'mp3' : 'mp4';
+    
+    const rawTitle = data.title || (cleanUrl.includes('/story/') ? 'TikTok_Story' : `tiktok_${data.id || Date.now()}`);
+    const sanitizedTitle = rawTitle.replace(/[\\/:*?"<>|]/g, '').slice(0, 80).trim() || `tiktok_${data.id}`;
+    const filename = `${sanitizedTitle} [${data.id || Date.now()}].${ext}`;
+    const destPath = path.join(folder, filename);
+    
+    currentDownloadFiles.push(destPath);
+    if (onLog) onLog(`Destination: ${destPath}`);
+
+    return new Promise((resolve, reject) => {
+        function downloadStream(streamUrl) {
+            const client = streamUrl.startsWith('https') ? https : http;
+            const req = client.get(streamUrl, (res) => {
+                if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                    return downloadStream(res.headers.location);
+                }
+
+                if (res.statusCode !== 200) {
+                    return reject(new Error(`HTTP error ${res.statusCode}`));
+                }
+
+                const totalBytes = parseInt(res.headers['content-length'], 10) || 0;
+                let downloadedBytes = 0;
+                let lastTime = Date.now();
+                let lastBytes = 0;
+
+                const fileStream = fs.createWriteStream(destPath);
+                res.on('data', (chunk) => {
+                    downloadedBytes += chunk.length;
+                    if (totalBytes > 0 && onProgress) {
+                        const percent = (downloadedBytes / totalBytes) * 100;
+                        onProgress(percent);
+
+                        const now = Date.now();
+                        if (now - lastTime >= 400) {
+                            const speed = ((downloadedBytes - lastBytes) / ((now - lastTime) / 1000)) / (1024 * 1024);
+                            if (mainWindow && !mainWindow.isDestroyed()) {
+                                mainWindow.webContents.send('download-speed', `${speed.toFixed(1)} MiB/s`);
+                            }
+                            lastTime = now;
+                            lastBytes = downloadedBytes;
+                        }
+                    }
+                });
+
+                res.pipe(fileStream);
+
+                fileStream.on('finish', () => {
+                    fileStream.close();
+                    resolve({ success: true, file: destPath });
+                });
+            });
+
+            req.on('error', (err) => {
+                if (fs.existsSync(destPath)) {
+                    try { fs.unlinkSync(destPath); } catch (_) {}
+                }
+                reject(err);
+            });
+        }
+
+        downloadStream(mediaUrl);
+    });
+}
+
 ipcMain.handle('start-download', async (event, { urls, format, quality, folder, cookies, embedThumbnail, embedMetadata, writeSubs, subLangs, speedLimit }) => {
     const downloadsFolder = folder || path.join(os.homedir(), 'Downloads');
+
+    // If downloading a single TikTok URL, try direct high-speed download first
+    if (urls && urls.length === 1 && isTikTokUrl(urls[0])) {
+        try {
+            currentDownloadFiles = [];
+            const res = await downloadTikTokDirect(
+                urls[0],
+                format,
+                quality,
+                downloadsFolder,
+                (percent) => {
+                    if (mainWindow && !mainWindow.isDestroyed()) {
+                        mainWindow.webContents.send('download-progress', percent);
+                    }
+                },
+                (log) => {
+                    if (mainWindow && !mainWindow.isDestroyed()) {
+                        mainWindow.webContents.send('download-log', log);
+                    }
+                }
+            );
+            return { success: true };
+        } catch (directErr) {
+            console.warn('Direct TikTok download failed, falling back to yt-dlp:', directErr.message);
+        }
+    }
+
     const ytDlpPath = getYtDlpPath();
     const ffmpegPath = getFfmpegPath();
     const ffmpegDir = path.dirname(ffmpegPath);
@@ -313,6 +436,40 @@ ipcMain.handle('get-video-info', async (event, input) => {
     if (!rawUrl) return { success: false, error: 'No URL provided' };
 
     const url = cleanMediaUrl(rawUrl);
+
+    // Fast direct metadata lookup for TikTok URLs
+    if (isTikTokUrl(url)) {
+        try {
+            const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
+            const apiRes = await new Promise((resolve, reject) => {
+                https.get(apiUrl, (res) => {
+                    let data = '';
+                    res.on('data', c => data += c);
+                    res.on('end', () => {
+                        try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
+                    });
+                }).on('error', reject);
+            });
+
+            if (apiRes && apiRes.code === 0 && apiRes.data) {
+                const d = apiRes.data;
+                const isStory = url.includes('/story/');
+                const info = {
+                    id: d.id,
+                    title: d.title || (isStory ? 'TikTok Story' : 'TikTok Video'),
+                    uploader: d.author ? `${d.author.nickname || ''} (@${d.author.unique_id || ''})`.trim() : 'TikTok',
+                    uploader_id: d.author?.unique_id,
+                    thumbnail: d.cover || d.origin_cover,
+                    duration: d.duration || 0,
+                    url: url,
+                };
+                return { success: true, isPlaylist: false, info };
+            }
+        } catch (e) {
+            console.warn('Direct TikTok info fetch failed, trying yt-dlp fallback:', e.message);
+        }
+    }
+
     const ytDlpPath = getYtDlpPath();
     const isPlaylist = url.includes('list=') || url.includes('/playlist') || url.includes('/sets/');
     const args = [
@@ -356,8 +513,6 @@ ipcMain.handle('get-video-info', async (event, input) => {
         });
     });
 });
-
-
 
 ipcMain.handle('open-file', (event, filePath) => {
     if (fs.existsSync(filePath)) {
