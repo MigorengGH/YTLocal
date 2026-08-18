@@ -508,15 +508,30 @@ ipcMain.handle('start-download', async (event, { urls, format, quality, folder, 
     const cleanedUrls = (urls || []).map(cleanMediaUrl);
     args.push(...cleanedUrls);
 
-    let stderrOutput = '';
+    let result = await runSpawnedDownload(args);
+    // If failed and cookies were enabled, auto-retry immediately without cookies to prevent cookie-lock crashes
+    if (!result.success && cookies && cookies !== 'none') {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('download-log', '⚠️ Cookie extraction issue, retrying direct stream without cookies...');
+        }
+        const retryArgs = args.filter((a, idx) => a !== '--cookies-from-browser' && args[idx - 1] !== '--cookies-from-browser');
+        result = await runSpawnedDownload(retryArgs);
+    }
 
+    return result;
+});
+
+function runSpawnedDownload(args) {
+    const ytDlpPath = getYtDlpPath();
     return new Promise((resolve) => {
+        let stderrOutput = '';
         currentDownloadFiles = [];
-        currentDownloadProcess = spawn(ytDlpPath, args, {
+        const proc = spawn(ytDlpPath, args, {
             env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
         });
+        currentDownloadProcess = proc;
 
-        currentDownloadProcess.stdout.on('data', (data) => {
+        proc.stdout.on('data', (data) => {
             const output = data.toString();
             
             const destMatch = output.match(/Destination:\s+(.+)/);
@@ -527,31 +542,36 @@ ipcMain.handle('start-download', async (event, { urls, format, quality, folder, 
             const progressMatch = output.match(/\[download\]\s+([\d\.]+)%/);
             if (progressMatch && progressMatch[1]) {
                 const percent = parseFloat(progressMatch[1]);
-                mainWindow.webContents.send('download-progress', percent);
+                if (mainWindow && !mainWindow.isDestroyed()) {
+                    mainWindow.webContents.send('download-progress', percent);
+                }
             }
 
             // Parse speed and ETA from yt-dlp output
             const speedMatch = output.match(/at\s+([\d\.]+\s*[KMG]?i?B\/s)/);
-            if (speedMatch && speedMatch[1]) {
+            if (speedMatch && speedMatch[1] && mainWindow && !mainWindow.isDestroyed()) {
                 mainWindow.webContents.send('download-speed', speedMatch[1]);
             }
             const etaMatch = output.match(/ETA\s+([\d:]+)/);
-            if (etaMatch && etaMatch[1]) {
+            if (etaMatch && etaMatch[1] && mainWindow && !mainWindow.isDestroyed()) {
                 mainWindow.webContents.send('download-eta', etaMatch[1]);
             }
 
-            mainWindow.webContents.send('download-log', output);
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.webContents.send('download-log', output);
+            }
         });
 
-        currentDownloadProcess.stderr.on('data', (data) => {
+        proc.stderr.on('data', (data) => {
             const errText = data.toString();
             stderrOutput += errText;
-            // Also forward stderr to renderer so user sees the real error
-            mainWindow.webContents.send('download-log', errText);
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.webContents.send('download-log', errText);
+            }
             console.error(`stderr: ${errText}`);
         });
 
-        currentDownloadProcess.on('close', (code) => {
+        proc.on('close', (code) => {
             currentDownloadProcess = null;
             if (code === 0) {
                 resolve({ success: true });
@@ -560,12 +580,12 @@ ipcMain.handle('start-download', async (event, { urls, format, quality, folder, 
             }
         });
 
-        currentDownloadProcess.on('error', (err) => {
+        proc.on('error', (err) => {
             currentDownloadProcess = null;
             resolve({ success: false, error: err.message });
         });
     });
-});
+}
 
 ipcMain.handle('cancel-download', () => {
     if (currentDownloadProcess) {
