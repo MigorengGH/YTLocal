@@ -452,7 +452,7 @@ ipcMain.handle('start-download', async (event, { urls, format, quality, folder, 
         '--extractor-args', 'tiktok:api_hostname=api16-normal-c-useast1a.tiktokv.com',
         '--js-runtimes', `node:${process.execPath}`,
         '--ffmpeg-location', ffmpegDir,
-        '-o', path.join(downloadsFolder, '%(title,id)s.%(ext)s'),
+        '-o', path.join(downloadsFolder, '%(title).80s [%(id)s].%(ext)s'),
         '--newline',
     ];
 
@@ -726,7 +726,7 @@ ipcMain.handle('get-video-info', async (event, input) => {
 
     if (isPlaylist) {
         args.push('--flat-playlist');
-    } else {
+    } else if (!isInstagramUrl(url)) {
         args.push('--no-playlist');
     }
     args.push(url);
@@ -739,7 +739,7 @@ ipcMain.handle('get-video-info', async (event, input) => {
             }
             try {
                 const lines = stdout.trim().split('\n').filter(l => l.length > 0);
-                if (isPlaylist && lines.length > 1) {
+                if (lines.length > 1) {
                     const items = lines.map(line => JSON.parse(line));
                     resolve({ success: true, isPlaylist: true, items });
                 } else if (lines.length > 0) {
