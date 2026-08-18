@@ -120,7 +120,7 @@ ipcMain.handle('start-download', async (event, { urls, format, quality, folder, 
         '--extractor-args', 'generic:impersonate',
         '--js-runtimes', `node:${process.execPath}`,
         '--ffmpeg-location', ffmpegDir,
-        '-o', path.join(downloadsFolder, '%(title)s.%(ext)s'),
+        '-o', path.join(downloadsFolder, '%(title,id)s.%(ext)s'),
         '--newline',
     ];
 
@@ -148,12 +148,12 @@ ipcMain.handle('start-download', async (event, { urls, format, quality, folder, 
         args.push('--audio-quality', '0');
     } else {
         const formatMap = {
-            'best':  'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',
-            '4k':    'bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best',
-            '1440':  'bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best',
-            '1080':  'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best',
-            '720':   'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best',
-            '480':   'bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best',
+            'best':  'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best[ext=mp4]/best',
+            '4k':    'bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best',
+            '1440':  'bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best',
+            '1080':  'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best',
+            '720':   'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best',
+            '480':   'bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best',
         };
         args.push('-f', formatMap[quality] || formatMap['best']);
         args.push('--merge-output-format', 'mp4');
@@ -291,10 +291,24 @@ ipcMain.handle('update-app', () => {
     }, 500);
 });
 
-ipcMain.handle('get-video-info', async (event, url) => {
+ipcMain.handle('get-video-info', async (event, input) => {
+    const url = typeof input === 'string' ? input : (input?.url || '');
+    const cookies = typeof input === 'object' ? input?.cookies : null;
+    if (!url) return { success: false, error: 'No URL provided' };
+
     const ytDlpPath = getYtDlpPath();
-    const isPlaylist = url.includes('list=');
-    const args = ['--dump-json', '--no-warnings', '--extractor-args', 'generic:impersonate'];
+    const isPlaylist = url.includes('list=') || url.includes('/playlist') || url.includes('/sets/');
+    const args = [
+        '--dump-json',
+        '--no-warnings',
+        '--no-check-certificates',
+        '--extractor-args', 'generic:impersonate',
+    ];
+
+    if (cookies && cookies !== 'none') {
+        args.push('--cookies-from-browser', cookies);
+    }
+
     if (isPlaylist) {
         args.push('--flat-playlist');
     } else {

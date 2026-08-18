@@ -78,10 +78,28 @@ folderBtn.addEventListener('click', async () => {
     }
 });
 
-// ── Video Info / Playlist preview ──
+// ── Video Info / Playlist & Story preview ──
 let fetchTimer;
 let currentPlaylistItems = [];
 let currentFetchUrl = '';
+
+function isValidUrl(str) {
+    if (!str) return false;
+    try {
+        const u = new URL(str);
+        return u.protocol === 'http:' || u.protocol === 'https:';
+    } catch (_) {
+        return false;
+    }
+}
+
+function isTikTokUrl(url) {
+    return /(?:tiktok\.com|vt\.tiktok\.com|vm\.tiktok\.com)/i.test(url);
+}
+
+function isTikTokStory(url) {
+    return /tiktok\.com\/(?:@[\w.-]+\/)?story\//i.test(url);
+}
 
 urlInput.addEventListener('input', () => {
     clearTimeout(fetchTimer);
@@ -90,7 +108,7 @@ urlInput.addEventListener('input', () => {
     const previewContainer = document.getElementById('video-preview-container');
     const playlistContainer = document.getElementById('playlist-container');
 
-    if (!url || (!url.includes('youtube.com') && !url.includes('youtu.be'))) {
+    if (!url || !isValidUrl(url)) {
         previewContainer.classList.add('hidden');
         playlistContainer.classList.add('hidden');
         downloadBtn.disabled = false;
@@ -99,7 +117,10 @@ urlInput.addEventListener('input', () => {
     }
     
     // Set immediate loading states
-    const isPlaylist = url.includes('list=');
+    const isPlaylist = url.includes('list=') || url.includes('/playlist') || url.includes('/sets/');
+    const isStory = isTikTokStory(url);
+    const isTikTok = isTikTokUrl(url);
+
     if (isPlaylist) {
         playlistContainer.classList.remove('hidden');
         previewContainer.classList.remove('hidden');
@@ -136,16 +157,18 @@ urlInput.addEventListener('input', () => {
         previewContainer.classList.remove('hidden');
         
         document.getElementById('preview-thumbnail').src = 'YTlocal.png';
-        document.getElementById('preview-title').innerText = 'Loading video details...';
+        document.getElementById('preview-title').innerText = isStory ? 'Loading TikTok Story...' : (isTikTok ? 'Loading TikTok Video...' : 'Loading video details...');
         document.getElementById('preview-channel').innerText = '';
-        document.getElementById('preview-duration').innerText = '';
+        document.getElementById('preview-duration').innerText = isStory ? 'Story' : '';
         
         downloadBtn.disabled = true;
-        downloadBtn.innerText = 'Loading Video Info...';
+        downloadBtn.innerText = isStory ? 'Loading Story...' : (isTikTok ? 'Loading TikTok...' : 'Loading Video Info...');
     }
     
     fetchTimer = setTimeout(async () => {
-        const result = await ipcRenderer.invoke('get-video-info', url);
+        const cookiesSelect = document.getElementById('cookies-select');
+        const cookies = cookiesSelect ? cookiesSelect.value : 'none';
+        const result = await ipcRenderer.invoke('get-video-info', { url, cookies });
         if (url !== currentFetchUrl) return;
         
         if (result.success) {
@@ -163,10 +186,20 @@ urlInput.addEventListener('input', () => {
             } else {
                 playlistContainer.classList.add('hidden');
                 previewContainer.classList.remove('hidden');
-                document.getElementById('preview-thumbnail').src = result.info.thumbnail || 'YTlocal.png';
-                document.getElementById('preview-title').innerText = result.info.title || 'Unknown Title';
-                document.getElementById('preview-channel').innerText = result.info.uploader || 'Unknown Channel';
-                const dur = result.info.duration ? new Date(result.info.duration * 1000).toISOString().substr(11, 8).replace(/^00:/, '') : '';
+                document.getElementById('preview-thumbnail').src = result.info.thumbnail || result.info.thumbnails?.[0]?.url || 'YTlocal.png';
+                
+                const defaultTitle = isStory ? 'TikTok Story' : (isTikTok ? 'TikTok Video' : 'Video');
+                document.getElementById('preview-title').innerText = result.info.title || result.info.description || defaultTitle;
+                
+                const channel = result.info.uploader || result.info.channel || result.info.creator || (result.info.uploader_id ? `@${result.info.uploader_id}` : (isTikTok ? 'TikTok' : 'Unknown Channel'));
+                document.getElementById('preview-channel').innerText = channel;
+                
+                let dur = '';
+                if (result.info.duration) {
+                    dur = new Date(result.info.duration * 1000).toISOString().substr(11, 8).replace(/^00:/, '');
+                } else if (isStory) {
+                    dur = 'Story';
+                }
                 document.getElementById('preview-duration').innerText = dur;
             }
             downloadBtn.disabled = false;
@@ -380,6 +413,15 @@ if (container) {
             ipcRenderer.send('resize-window', height);
         }
     }).observe(container);
+}
+
+const cookiesSelectEl = document.getElementById('cookies-select');
+if (cookiesSelectEl) {
+    cookiesSelectEl.addEventListener('change', () => {
+        if (urlInput.value.trim()) {
+            urlInput.dispatchEvent(new Event('input'));
+        }
+    });
 }
 
 if (process.platform !== 'darwin') {
