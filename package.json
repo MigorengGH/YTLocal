@@ -1,7 +1,7 @@
 {
   "name": "ytlocal",
-  "version": "1.2.0",
-  "description": "A desktop app to download YouTube and TikTok videos and audio locally.",
+  "version": "1.3.0",
+  "description": "A desktop app to download YouTube, TikTok, and Instagram videos, audio, and images locally.",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
