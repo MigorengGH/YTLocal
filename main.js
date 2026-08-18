@@ -132,6 +132,7 @@ ipcMain.handle('start-download', async (event, { urls, format, quality, folder, 
     const args = [
         '--no-check-certificates',
         '--no-warnings',
+        '--extractor-args', 'tiktok:api_hostname=api16-normal-c-useast1a.tiktokv.com',
         '--js-runtimes', `node:${process.execPath}`,
         '--ffmpeg-location', ffmpegDir,
         '-o', path.join(downloadsFolder, '%(title,id)s.%(ext)s'),
@@ -318,6 +319,7 @@ ipcMain.handle('get-video-info', async (event, input) => {
         '--dump-json',
         '--no-warnings',
         '--no-check-certificates',
+        '--extractor-args', 'tiktok:api_hostname=api16-normal-c-useast1a.tiktokv.com',
     ];
 
     if (cookies && cookies !== 'none') {
