@@ -503,6 +503,9 @@ ipcMain.handle('start-download', async (event, { urls, format, quality, folder, 
         };
         args.push('-f', formatMap[quality] || formatMap['best']);
         args.push('--merge-output-format', 'mp4');
+        // Transcode any incompatible video codecs (e.g. VP9 from Instagram) into standard H.264 (yuv420p) for universal QuickTime & Windows playback
+        args.push('--postprocessor-args', 'Merger:-c:v libx264 -pix_fmt yuv420p -c:a copy');
+        args.push('--postprocessor-args', 'VideoConvertor:-c:v libx264 -pix_fmt yuv420p -c:a copy');
     }
 
     const cleanedUrls = (urls || []).map(cleanMediaUrl);
